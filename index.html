@@ -656,7 +656,6 @@ function viewOrder(id){
   document.getElementById('mo-order').classList.add('open');
 }
 
-}
 async function updateSt(id,s){
   var o=APP.orders.find(x=>x.id===id);if(!o)return;
   var old=o.status;o.status=s;
@@ -933,6 +932,7 @@ async function cuPostFinalReceipt(o){
     await cuAPI('POST','/task/'+o.cuTaskId+'/comment',{comment_text:cuFinalReceiptMd(o),notify_all:false});
     logIt('Final receipt posted: '+o.name);toast('Pickup receipt added to order #'+o.id);
   }catch(e){}
+}
 async function testCU(){var st=document.getElementById('cu-status');st.textContent='Testing…';var tok=document.getElementById('cu-token').value.trim();CFG.cuToken=tok;try{var r=await cuAPI('GET','/user');st.textContent='Connected as '+r.user.username;document.getElementById('cu-dot').className='dot ok';document.getElementById('cu-lbl').textContent=r.user.username;toast('ClickUp connected ✓')}catch(e){st.textContent='Error: '+e.message;document.getElementById('cu-dot').className='dot err';toast('Check token or CORS')}}
 async function fetchCUStatuses(){
   var lid=document.getElementById('cu-list').value.trim();
