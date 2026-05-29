@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chef Rhi's Kitchen — Order Management</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+</head>
+<body>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -100,7 +109,7 @@ textarea{resize:vertical;min-height:55px}
 <div class="hd">
   <div class="brand">
     <div class="logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
-    <div><div class="bn">Chef Ree's Kitchen</div><div class="bs">ORDER MANAGEMENT SYSTEM</div></div>
+    <div><div class="bn">Chef Rhi's Kitchen</div><div class="bs">ORDER MANAGEMENT SYSTEM</div></div>
   </div>
   <div class="hdr">
     <div class="pill" id="cu-pill" onclick="showTab('settings',document.querySelector('[data-t=settings]'))">
@@ -290,7 +299,7 @@ textarea{resize:vertical;min-height:55px}
   <div class="card">
     <div class="ct"><div class="ctl"><i class="ti ti-building-store" aria-hidden="true"></i> Business & Notifications</div></div>
     <div class="fg2">
-      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Ree's Neighborhood Kitchen" oninput="CFG.bizName=this.value"></div>
+      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Rhi's Neighborhood Kitchen" oninput="CFG.bizName=this.value"></div>
       <div class="fg"><label>ADMIN PHONE (for Twilio alerts)</label><input id="adm-phone" placeholder="+14045550100" oninput="CFG.adminPhone=this.value"></div>
       <div class="fg"><label>ADMIN EMAIL (for SendGrid alerts)</label><input id="adm-email" placeholder="jeffrey@email.com" oninput="CFG.adminEmail=this.value"></div>
       <div class="fg"><label>GITHUB PAGES URL</label><input id="gh-url" placeholder="yourusername.github.io/ree-kitchen" oninput="CFG.ghURL=this.value"></div>
@@ -371,7 +380,7 @@ textarea{resize:vertical;min-height:55px}
 
 <script>
 var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
-var CFG={zap1:'',zap2:'',zap3:'',zap4:'',sheetsCSV:'',cuToken:'',cuListId:'',statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},autoSync:true,bizName:"Chef Ree's Neighborhood Kitchen",adminPhone:'',adminEmail:'',ghURL:'',pin:''};
+var CFG={zap1:'',zap2:'',zap3:'',zap4:'',sheetsCSV:'',cuToken:'',cuListId:'',statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},autoSync:true,bizName:"Chef Rhi's Neighborhood Kitchen",adminPhone:'',adminEmail:'',ghURL:'',pin:''};
 var APP={orders:[],menu:[],webhooks:[]};
 var LOG=[];
 var editMI=-1,viewOID=null,iqtys={};
@@ -686,3 +695,6 @@ document.getElementById('mo-order').addEventListener('click',function(e){if(e.ta
 initSample();renderDash();renderStatusMap();renderWH();
 var bc=document.getElementById('b-cut');if(!bc.value)bc.value=new Date(Date.now()+5*86400000).toISOString().split('T')[0];
 </script>
+
+</body>
+</html>
