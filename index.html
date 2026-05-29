@@ -731,7 +731,28 @@ function renderWH(){
 function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
 
 async function cuAPI(method,path,body){if(!CFG.cuToken)throw new Error('No token');var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':CFG.cuToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('ClickUp '+r.status);return r.json()}
-function cuDesc(o){var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');var pickupStr=o.pickup+(o.pickupDisplay?' at '+o.pickupDisplay:'');return'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+pickupStr+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'')}
+function cuDesc(o){
+  var itemLines=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?'**'+it.qty+'×** ':'')+m.name+' — *$'+(m.price*it.qty).toFixed(0)+'*':''}).filter(Boolean).join('\n');
+  var pickupStr=o.pickup+(o.pickupDisplay?' at **'+o.pickupDisplay+'**':'');
+  var md='## 🧾 Order Receipt\n\n';
+  md+='---\n\n';
+  md+='**👤 Customer:** '+o.name+'\n';
+  md+='**📞 Phone:** '+o.phone+'\n';
+  if(o.email)md+='**✉️ Email:** '+o.email+'\n';
+  md+='\n---\n\n';
+  md+='**📅 Pickup:** '+pickupStr+'\n';
+  md+='**💳 Payment:** '+o.payMethod+' — '+o.payStatus+'\n';
+  md+='\n---\n\n';
+  md+='### Items Ordered\n\n';
+  md+=itemLines+'\n\n';
+  md+='---\n\n';
+  md+='### 💰 Order Total: $'+ot(o).toFixed(0)+'\n\n';
+  md+='---\n\n';
+  md+='*Order ID: `'+o.id+'`*\n';
+  md+='*Placed: '+new Date(o.created).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'*\n';
+  if(o.notes)md+='\n> ⚠️ **Notes:** '+o.notes+'\n';
+  return md;
+}
 async function cuCreateTask(o){try{var dueMs=o.pickup?new Date(o.pickup+'T12:00:00').getTime():null;var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:o.name+' | $'+ot(o).toFixed(0),description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:dueMs,notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp: could not add to queue — '+e.message)}}
 async function cuUpdateTask(o){if(!o.cuTaskId){cuCreateTask(o);return}try{await cuAPI('PUT','/task/'+o.cuTaskId,{status:CFG.statusMap[o.status]||'Open'});logIt('ClickUp updated: '+o.name);}catch(e){}}
 async function testCU(){var st=document.getElementById('cu-status');st.textContent='Testing…';var tok=document.getElementById('cu-token').value.trim();CFG.cuToken=tok;try{var r=await cuAPI('GET','/user');st.textContent='Connected as '+r.user.username;document.getElementById('cu-dot').className='dot ok';document.getElementById('cu-lbl').textContent=r.user.username;toast('ClickUp connected ✓')}catch(e){st.textContent='Error: '+e.message;document.getElementById('cu-dot').className='dot err';toast('Check token or CORS')}}
