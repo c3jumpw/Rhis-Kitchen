@@ -1,0 +1,688 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f8f6f1;--bg2:#eeebe3;--bg3:#e2ded4;--card:#fff;--text:#1c1a16;--mu:#6e6a5e;--hi:#a09b8e;--bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.16);--am:#c47c0a;--am2:#fef8e8;--gn:#2a7a3b;--gn2:#eaf3de;--rd:#b02020;--rd2:#fcebeb;--bl:#185fa5;--bl2:#e6f1fb;--pu:#534ab7;--pu2:#eeedfe;--zp:#e85d20;--zp2:#fff3ee;--gs:#0F9D58;--gs2:#e8f5e0;--tw:#E8453C;--tw2:#fff0f0;--sg:#1A82E2;--sg2:#e6f1fb;}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1a16;--bg2:#242118;--bg3:#2e2a22;--card:#242118;--text:#f0ece4;--mu:#9e9a8e;--hi:#68645a;--bd:rgba(255,255,255,0.09);--bd2:rgba(255,255,255,0.18);}}
+body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;font-size:14px}
+.hd{background:var(--card);border-bottom:0.5px solid var(--bd2);padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:8px}
+.logo{width:30px;height:30px;background:var(--am);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.bn{font-size:14px;font-weight:500}.bs{font-size:10px;color:var(--mu);letter-spacing:.06em}
+.hdr{display:flex;align-items:center;gap:6px}
+.pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--bd2);cursor:pointer}
+.dot{width:7px;height:7px;border-radius:50%;background:#bbb;flex-shrink:0}
+.dot.ok{background:var(--gn)}.dot.err{background:var(--rd)}
+.nav{display:flex;background:var(--card);border-bottom:0.5px solid var(--bd);padding:0 1rem;overflow-x:auto;gap:2px}
+.nt{padding:9px 14px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--mu);border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;transition:all .12s}
+.nt.on{color:var(--text);border-bottom-color:var(--am);font-weight:500}
+.nt:hover:not(.on){color:var(--text);background:var(--bg2)}
+.wrap{padding:1.25rem}
+.sec{display:none}.sec.on{display:block}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+.mc{background:var(--bg2);border-radius:8px;padding:.875rem}
+.ml{font-size:11px;color:var(--mu);margin-bottom:5px;letter-spacing:.03em}
+.mv{font-size:22px;font-weight:500;letter-spacing:-.03em}
+.ms{font-size:11px;color:var(--hi);margin-top:3px}
+.card{background:var(--card);border:0.5px solid var(--bd);border-radius:12px;padding:1rem 1.125rem;margin-bottom:1rem}
+.ct{font-size:13px;font-weight:500;margin-bottom:.875rem;display:flex;align-items:center;justify-content:space-between}
+.ctl{display:flex;align-items:center;gap:7px}
+.btn{padding:6px 13px;border:0.5px solid var(--bd2);border-radius:7px;background:transparent;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
+.bp{background:var(--am);border-color:var(--am);color:#fff}.bp:hover{background:#a86800;border-color:#a86800}
+.bs2{padding:4px 9px;font-size:11px}
+.bd2{border-color:var(--rd);color:var(--rd)}.bd2:hover{background:var(--rd2)}
+.bzp{background:var(--zp2);border-color:var(--zp);color:var(--zp)}.bzp:hover{background:var(--zp);color:#fff}
+.bgs{background:var(--gs2);border-color:var(--gs);color:var(--gs)}.bgs:hover{background:var(--gs);color:#fff}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;letter-spacing:.03em}
+.bgr{background:var(--bg2);color:var(--mu)}.bb2{background:var(--bl2);color:var(--bl)}.bam{background:var(--am2);color:var(--am)}.bgn{background:var(--gn2);color:var(--gn)}.brd{background:var(--rd2);color:var(--rd)}
+.kan{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;align-items:start}
+.kcol{background:var(--bg2);border-radius:8px;padding:.625rem;min-height:120px}
+.kh{font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.07em;margin-bottom:.625rem;display:flex;align-items:center;justify-content:space-between}
+.kct{background:var(--bg3);border-radius:10px;padding:1px 6px;font-size:10px}
+.oc{background:var(--card);border:0.5px solid var(--bd);border-radius:7px;padding:.625rem;margin-bottom:.375rem;cursor:pointer;transition:border-color .12s;position:relative}
+.oc:hover{border-color:var(--bd2)}
+.on2{font-size:12px;font-weight:500;margin-bottom:2px}
+.oi{font-size:10px;color:var(--mu);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.om{display:flex;justify-content:space-between;align-items:center}
+.ot{font-size:12px;font-weight:500;color:var(--am)}
+.od{font-size:10px;color:var(--hi)}
+.cusync{position:absolute;top:5px;right:5px;font-size:10px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:11px;color:var(--mu);letter-spacing:.03em}
+input,select,textarea{background:var(--bg2);border:0.5px solid var(--bd);border-radius:7px;padding:7px 9px;color:var(--text);font-size:13px;font-family:inherit;width:100%;transition:border-color .12s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--am)}
+textarea{resize:vertical;min-height:55px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .15s}
+.mo.open{opacity:1;pointer-events:all}
+.md{background:var(--card);border-radius:14px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border:0.5px solid var(--bd2)}
+.mh{padding:1rem 1.125rem;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1}
+.mt2{font-size:14px;font-weight:500}
+.mb2{padding:1.125rem}
+.mf{padding:.875rem 1.125rem;border-top:0.5px solid var(--bd);display:flex;justify-content:flex-end;gap:7px;background:var(--card);position:sticky;bottom:0}
+.divd{border:none;border-top:0.5px solid var(--bd);margin:.75rem 0}
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--text);color:var(--bg);padding:.625rem 1rem;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+.mi{background:var(--card);border:0.5px solid var(--bd);border-radius:10px;padding:.875rem;position:relative}
+.min2{font-size:13px;font-weight:500;margin-bottom:2px;padding-right:50px}
+.mip{font-size:17px;font-weight:500;color:var(--am)}
+.mia{position:absolute;top:8px;right:8px;display:flex;gap:3px}
+.cr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd)}
+.cr:last-child{border-bottom:none}
+.av{width:34px;height:34px;border-radius:50%;background:var(--bl2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--bl);flex-shrink:0}
+.ci{flex:1;min-width:0}.cn2{font-size:13px;font-weight:500}.cc{font-size:11px;color:var(--mu)}
+.css2{text-align:right;flex-shrink:0}.co{font-size:12px;font-weight:500}.csp{font-size:10px;color:var(--hi)}
+.pb{height:5px;border-radius:3px;background:var(--bg3);margin-bottom:4px;overflow:hidden}
+.pf{height:100%;border-radius:3px;background:var(--am)}
+.ai{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bd)}
+.ai:last-child{border-bottom:none}
+.ad{width:7px;height:7px;border-radius:50%;background:var(--am);margin-top:5px;flex-shrink:0}
+.at2{font-size:12px;flex:1}.atm{font-size:10px;color:var(--hi);flex-shrink:0}
+.gr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bd);font-size:12px}
+.gr:last-child{border-bottom:none}
+.int-sec{border:0.5px solid;border-radius:10px;padding:.875rem;margin-bottom:1rem}
+.int-title{font-size:11px;font-weight:500;letter-spacing:.07em;margin-bottom:.625rem;display:flex;align-items:center;gap:6px}
+.help{font-size:11px;color:var(--mu);line-height:1.6;margin-bottom:.75rem}
+.help code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:10px}
+.payload-box{background:var(--bg3);border-radius:8px;padding:.75rem;font-family:monospace;font-size:10px;line-height:1.7;color:var(--text);overflow-x:auto;white-space:pre;margin-top:.5rem}
+.empty{text-align:center;padding:1.5rem;color:var(--mu);font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.bw{justify-content:space-between}
+.smap{width:100%;border-collapse:collapse;font-size:12px}
+.smap td,.smap th{padding:5px 8px;border:0.5px solid var(--bd)}
+.smap th{background:var(--bg2);font-weight:500;font-size:10px;letter-spacing:.03em;color:var(--mu)}
+.smap input{padding:4px 7px;font-size:12px;border-radius:5px}
+.whr{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+</style>
+
+<div>
+<div class="hd">
+  <div class="brand">
+    <div class="logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+    <div><div class="bn">Chef Ree's Kitchen</div><div class="bs">ORDER MANAGEMENT SYSTEM</div></div>
+  </div>
+  <div class="hdr">
+    <div class="pill" id="cu-pill" onclick="showTab('settings',document.querySelector('[data-t=settings]'))">
+      <div class="dot" id="cu-dot"></div>
+      <span id="cu-lbl" style="font-size:11px;color:var(--mu)">ClickUp</span>
+    </div>
+    <div class="pill" id="zp-pill" style="border-color:var(--zp)">
+      <div class="dot" id="zp-dot"></div>
+      <span id="zp-lbl" style="font-size:11px;color:var(--mu)">Zapier</span>
+    </div>
+    <button class="btn bs2 bp" onclick="genDeploy()"><i class="ti ti-download" aria-hidden="true"></i> Download App</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nt on" data-t="dash" onclick="showTab('dash',this)">Dashboard</button>
+  <button class="nt" data-t="orders" onclick="showTab('orders',this)">Orders</button>
+  <button class="nt" data-t="new" onclick="showTab('new',this)">+ New Order</button>
+  <button class="nt" data-t="menu" onclick="showTab('menu',this)">Menu</button>
+  <button class="nt" data-t="customers" onclick="showTab('customers',this)">Customers</button>
+  <button class="nt" data-t="grocery" onclick="showTab('grocery',this)">Grocery</button>
+  <button class="nt" data-t="settings" onclick="showTab('settings',this)">Settings</button>
+</div>
+
+<div class="wrap">
+
+<div class="sec on" id="sec-dash">
+  <div class="g4">
+    <div class="mc"><div class="ml">ACTIVE ORDERS</div><div class="mv" id="m1">0</div><div class="ms">pending</div></div>
+    <div class="mc"><div class="ml">REVENUE</div><div class="mv" id="m2">$0</div><div class="ms">this cycle</div></div>
+    <div class="mc"><div class="ml">CUSTOMERS</div><div class="mv" id="m3">0</div><div class="ms">in database</div></div>
+    <div class="mc"><div class="ml">READY</div><div class="mv" id="m4">0</div><div class="ms">for pickup</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="card">
+      <div class="ct"><div class="ctl"><i class="ti ti-chart-bar" aria-hidden="true"></i> Pipeline</div></div>
+      <div id="pipeline"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ctl"><i class="ti ti-activity" aria-hidden="true"></i> Activity</div></div>
+      <div id="activity"><div class="empty">No activity yet</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-speakerphone" aria-hidden="true"></i> Blast Announcement</div></div>
+    <div class="fg2">
+      <div class="fg"><label>OCCASION</label><input id="b-occ" placeholder="Mother's Day Special"></div>
+      <div class="fg"><label>ORDER CUTOFF</label><input type="date" id="b-cut"></div>
+    </div>
+    <div class="fg"><label>MESSAGE (sent via Twilio SMS + SendGrid email via Zapier)</label><textarea id="b-msg" placeholder="Hey! We're taking pre-orders for our Mother's Day menu. Order by Wednesday the 7th — oxtail platters, jerk chicken, rice & peas. Reply or click the link to order!"></textarea></div>
+    <div class="row" style="margin-top:.5rem;gap:8px">
+      <button class="btn bp" onclick="sendBlast()"><i class="ti ti-send" aria-hidden="true"></i> Send Blast via Zapier (<span id="bcnt">0</span> customers)</button>
+      <span style="font-size:11px;color:var(--mu)">→ Zap 3 fires Twilio SMS + SendGrid email to each customer</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="sec-orders">
+  <div class="row bw" style="margin-bottom:1rem">
+    <div style="font-size:15px;font-weight:500">Orders</div>
+    <div class="row">
+      <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync ClickUp</button>
+      <button class="btn bp bs2" onclick="showTab('new',document.querySelector('[data-t=new]'))"><i class="ti ti-plus" aria-hidden="true"></i> New Order</button>
+    </div>
+  </div>
+  <div class="kan" id="kanban"></div>
+</div>
+
+<div class="sec" id="sec-new">
+  <div style="max-width:580px">
+    <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">New Order</div>
+    <div class="card">
+      <div class="ct"><div class="ctl"><i class="ti ti-user" aria-hidden="true"></i> Customer</div></div>
+      <div class="fg2">
+        <div class="fg"><label>NAME *</label><input id="on" placeholder="Full name"></div>
+        <div class="fg"><label>PHONE *</label><input id="op" placeholder="+1 (555) 000-0000"></div>
+        <div class="fg"><label>EMAIL</label><input id="oe" type="email" placeholder="email@example.com"></div>
+        <div class="fg"><label>PICKUP DATE *</label><input id="od" type="date"></div>
+        <div class="fg" style="grid-column:1/-1"><label>NOTES / ALLERGIES</label><input id="onotes" placeholder="Special requests, allergies, delivery notes…"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ctl"><i class="ti ti-list" aria-hidden="true"></i> Items</div><span id="itotal" style="font-size:13px;font-weight:500;color:var(--am)">$0.00</span></div>
+      <div id="ipicker"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ctl"><i class="ti ti-credit-card" aria-hidden="true"></i> Payment</div></div>
+      <div class="fg2">
+        <div class="fg"><label>METHOD</label><select id="opm"><option>Cash App</option><option>Zelle</option><option>Stripe</option><option>Cash</option></select></div>
+        <div class="fg"><label>STATUS</label><select id="ops"><option>Deposit Paid</option><option>Paid in Full</option><option>Unpaid</option></select></div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:7px">
+      <button class="btn" onclick="resetForm()">Clear</button>
+      <button class="btn bp" onclick="submitOrder()"><i class="ti ti-check" aria-hidden="true"></i> Place Order + Notify via Zapier</button>
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="sec-menu">
+  <div class="row bw" style="margin-bottom:1.25rem">
+    <div style="font-size:15px;font-weight:500">Menu Items</div>
+    <div class="row">
+      <button class="btn bgs bs2" onclick="syncMenu()"><i class="ti ti-table" aria-hidden="true"></i> Sync from Sheets</button>
+      <button class="btn bp" onclick="openMenu()"><i class="ti ti-plus" aria-hidden="true"></i> Quick Add Item</button>
+    </div>
+  </div>
+  <div class="mg" id="mgrid"></div>
+</div>
+
+<div class="sec" id="sec-customers">
+  <div class="row bw" style="margin-bottom:1rem">
+    <div style="font-size:15px;font-weight:500">Customers</div>
+    <div class="row">
+      <input style="width:180px" placeholder="Search…" oninput="renderCustomers(this.value)">
+      <button class="btn bs2" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
+    </div>
+  </div>
+  <div class="card"><div id="clist"></div></div>
+</div>
+
+<div class="sec" id="sec-grocery">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">Grocery List</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+    <div class="card" style="margin:0">
+      <div class="ct"><div class="ctl"><i class="ti ti-filter" aria-hidden="true"></i> Filter</div></div>
+      <div class="fg"><label>PICKUP DATE</label><input type="date" id="gd" oninput="renderGrocery()"></div>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:.5rem;font-size:12px;color:var(--text);cursor:pointer"><input type="checkbox" id="ga" style="width:auto" onchange="renderGrocery()"> All pending orders</label>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="ct"><div class="ctl"><i class="ti ti-coins" aria-hidden="true"></i> Est. Ingredient Cost</div></div>
+      <div style="font-size:28px;font-weight:500;letter-spacing:-.03em" id="gcost">$0</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-list-check" aria-hidden="true"></i> Shopping List</div><button class="btn bs2" onclick="window.print()"><i class="ti ti-printer" aria-hidden="true"></i> Print</button></div>
+    <div id="glist"></div>
+  </div>
+</div>
+
+<div class="sec" id="sec-settings">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">Settings & Integrations</div>
+
+  <div class="int-sec" style="border-color:var(--zp);background:var(--zp2)">
+    <div class="int-title" style="color:var(--zp)"><i class="ti ti-bolt" aria-hidden="true"></i> ZAPIER — INTEGRATION HUB</div>
+    <div class="help">Paste the webhook URL from each Zap below. All API keys (Twilio, SendGrid, ClickUp) live inside Zapier — never in this app.</div>
+    <div class="fg2">
+      <div class="fg"><label>ZAP 1 — NEW ORDER WEBHOOK</label><input id="zap1" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap1=this.value"></div>
+      <div class="fg"><label>ZAP 2 — STATUS CHANGED WEBHOOK</label><input id="zap2" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap2=this.value"></div>
+      <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap3=this.value"></div>
+      <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" placeholder="Paste Zap 4 webhook or leave blank" oninput="CFG.zap4=this.value"></div>
+    </div>
+    <div style="font-size:11px;color:var(--mu);margin-top:.25rem"><b>Payload sent to Zapier Zap 1 (new order):</b></div>
+    <div class="payload-box" id="payload-preview">{ "event": "order.new", "order_id": "abc123", "customer_name": "Natalie Johnson", "customer_phone": "+16785550101", "customer_email": "nat@email.com", "pickup_date": "2026-05-25", "items_text": "1× Oxtail Platter (Half Pan) · 1× Rice & Peas (Half Pan)", "total": "213.00", "payment_method": "Cash App", "payment_status": "Deposit Paid", "notes": "No spicy sides please", "admin_phone": "+14045550100", "admin_email": "jeffrey@email.com" }</div>
+  </div>
+
+  <div class="int-sec" style="border-color:var(--gs);background:var(--gs2)">
+    <div class="int-title" style="color:var(--gs)"><i class="ti ti-table" aria-hidden="true"></i> GOOGLE SHEETS</div>
+    <div class="help">Publish the Menu tab as CSV (File → Share → Publish to web → Menu tab → CSV) and paste the URL below. The app reads menu items from it on sync.<br>Zapier writes all order + customer data to Sheets — you don't need to enter any Sheets API key here.</div>
+    <div class="fg2">
+      <div class="fg" style="grid-column:1/-1"><label>MENU TAB CSV URL (from Publish to web)</label><input id="sheets-csv" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=0&single=true&output=csv" oninput="CFG.sheetsCSV=this.value"></div>
+    </div>
+    <div class="row" style="margin-top:.375rem;gap:7px">
+      <button class="btn bgs bs2" onclick="syncMenu()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync Menu from Sheets</button>
+      <span id="sheets-status" style="font-size:11px;color:var(--mu)"></span>
+    </div>
+  </div>
+
+  <div class="int-sec" style="border-color:var(--pu);background:var(--pu2)">
+    <div class="int-title" style="color:var(--pu)"><i class="ti ti-checkbox" aria-hidden="true"></i> CLICKUP — DIRECT SYNC</div>
+    <div class="help">Optional direct sync alongside Zapier. Get API Token from ClickUp → Settings → Apps. Get List ID from the URL of your Kitchen Orders list.</div>
+    <div class="fg2">
+      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" placeholder="pk_xxxxx…" oninput="CFG.cuToken=this.value"></div>
+      <div class="fg"><label>KITCHEN ORDERS LIST ID</label><input id="cu-list" placeholder="901234567" oninput="CFG.cuListId=this.value"></div>
+    </div>
+    <div class="row" style="margin-top:.375rem;gap:7px">
+      <button class="btn bs2" style="border-color:var(--pu);color:var(--pu)" onclick="testCU()"><i class="ti ti-plug" aria-hidden="true"></i> Test Connection</button>
+      <button class="btn bs2" onclick="fetchCUStatuses()"><i class="ti ti-refresh" aria-hidden="true"></i> Fetch Statuses</button>
+      <span id="cu-status" style="font-size:11px;color:var(--mu)"></span>
+    </div>
+    <div class="divd"></div>
+    <div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.5rem">STATUS MAPPING — APP STAGE → CLICKUP STATUS NAME</div>
+    <table class="smap" id="smap"></table>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--text);margin-top:.625rem"><input type="checkbox" id="autosync" style="width:auto" checked onchange="CFG.autoSync=this.checked"> Auto-sync status changes to ClickUp</label>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-building-store" aria-hidden="true"></i> Business & Notifications</div></div>
+    <div class="fg2">
+      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Ree's Neighborhood Kitchen" oninput="CFG.bizName=this.value"></div>
+      <div class="fg"><label>ADMIN PHONE (for Twilio alerts)</label><input id="adm-phone" placeholder="+14045550100" oninput="CFG.adminPhone=this.value"></div>
+      <div class="fg"><label>ADMIN EMAIL (for SendGrid alerts)</label><input id="adm-email" placeholder="jeffrey@email.com" oninput="CFG.adminEmail=this.value"></div>
+      <div class="fg"><label>GITHUB PAGES URL</label><input id="gh-url" placeholder="yourusername.github.io/ree-kitchen" oninput="CFG.ghURL=this.value"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-webhook" aria-hidden="true"></i> Additional Webhooks</div><button class="btn bs2" onclick="addWH()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button></div>
+    <div class="help">Extra webhook endpoints beyond the 4 Zapier Zaps — for custom integrations, Stripe, Make, etc.</div>
+    <div id="whlist"></div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-rocket" aria-hidden="true"></i> Deploy to GitHub Pages</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem">
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:.375rem;color:var(--text)">1. Download</div>
+        <div style="font-size:11px;color:var(--mu)">Click Download App — saves <code style="font-size:10px;background:var(--bg3);padding:1px 4px;border-radius:3px">ree-kitchen.html</code> with your current menu + settings embedded</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:.375rem;color:var(--text)">2. Push to GitHub</div>
+        <div style="font-size:11px;color:var(--mu)">Upload to your repo → Settings → Pages → Branch: main → your site is live at <code style="font-size:10px;background:var(--bg3);padding:1px 4px;border-radius:3px">username.github.io/ree-kitchen</code></div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:.375rem;color:var(--text)">3. Paste Zapier URLs</div>
+        <div style="font-size:11px;color:var(--mu)">Go to the Zapier section above, paste all 4 webhook URLs, then re-download + re-upload to GitHub</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:.375rem;color:var(--text)">4. Share the link</div>
+        <div style="font-size:11px;color:var(--mu)">Send the GitHub Pages URL to Jeffrey and Ree — bookmark it on their phones. Done.</div>
+      </div>
+    </div>
+    <div class="row" style="flex-wrap:wrap;gap:7px">
+      <button class="btn bp" onclick="genDeploy()"><i class="ti ti-download" aria-hidden="true"></i> Download App File</button>
+      <button class="btn bs2" onclick="exportJSON()"><i class="ti ti-package" aria-hidden="true"></i> Export Data Backup</button>
+      <label class="btn bs2" style="cursor:pointer"><i class="ti ti-upload" aria-hidden="true"></i> Import Backup<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+      <button class="btn bs2 bd2" onclick="clearData()"><i class="ti ti-trash" aria-hidden="true"></i> Clear Data</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div id="mo-menu" class="mo">
+  <div class="md">
+    <div class="mh"><div class="mt2" id="mmtitle">Add Menu Item</div><button class="btn bs2" onclick="closeMenu()"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <div class="mb2">
+      <div class="fg2">
+        <div class="fg" style="grid-column:1/-1"><label>ITEM NAME *</label><input id="mm-n" placeholder="Oxtail Platter (Half Pan)"></div>
+        <div class="fg" style="grid-column:1/-1"><label>DESCRIPTION</label><input id="mm-d" placeholder="Slow-braised oxtail, serves 4-6"></div>
+        <div class="fg"><label>TYPE</label><select id="mm-t"><option>Platter</option><option>Plate</option><option>Side</option><option>Drink</option><option>Catering</option></select></div>
+        <div class="fg"><label>AVAILABILITY</label><select id="mm-a"><option>Always</option><option>Seasonal</option><option>Holiday Only</option></select></div>
+        <div class="fg"><label>SELL PRICE *</label><input type="number" id="mm-p" placeholder="175" step="0.5" min="0"></div>
+        <div class="fg"><label>INGREDIENT COST</label><input type="number" id="mm-c" placeholder="60" step="0.5" min="0"></div>
+        <div class="fg" style="grid-column:1/-1"><label>KEY INGREDIENTS (comma-separated)</label><input id="mm-i" placeholder="oxtail, butter beans, scotch bonnet, allspice, thyme, garlic"></div>
+        <div class="fg"><label>SERVINGS</label><input type="number" id="mm-s" placeholder="5" min="1"></div>
+        <div class="fg"><label>PREP TIME (hrs)</label><input type="number" id="mm-pr" placeholder="4" step="0.5" min="0"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeMenu()">Cancel</button><button class="btn bp" onclick="saveMI()">Save Item</button></div>
+  </div>
+</div>
+
+<div id="mo-order" class="mo">
+  <div class="md">
+    <div class="mh"><div class="mt2" id="omtitle">Order</div><button class="btn bs2" onclick="closeOrder()"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <div class="mb2" id="ombody"></div>
+    <div class="mf">
+      <button class="btn bs2 bd2" onclick="delOrder()"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+      <button class="btn bzp bs2" onclick="syncOneZap()"><i class="ti ti-bolt" aria-hidden="true"></i> Re-sync Zapier</button>
+      <button class="btn" onclick="closeOrder()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
+var CFG={zap1:'',zap2:'',zap3:'',zap4:'',sheetsCSV:'',cuToken:'',cuListId:'',statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},autoSync:true,bizName:"Chef Ree's Neighborhood Kitchen",adminPhone:'',adminEmail:'',ghURL:'',pin:''};
+var APP={orders:[],menu:[],webhooks:[]};
+var LOG=[];
+var editMI=-1,viewOID=null,iqtys={};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function toast(m,dur){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur||2800)}
+function logIt(m){LOG.unshift({m,t:new Date()});if(LOG.length>30)LOG.pop()}
+function timeAgo(d){var s=Math.floor((Date.now()-d)/1000);if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
+function ot(o){return o.items.reduce((s,it)=>{var m=APP.menu.find(x=>x.id===it.mid);return s+(m?m.price*it.qty:0)},0)}
+function customers(){var map={};APP.orders.forEach(o=>{if(!map[o.phone])map[o.phone]={name:o.name,phone:o.phone,email:o.email||'',orders:0,spent:0};map[o.phone].orders++;map[o.phone].spent+=ot(o)});return Object.values(map)}
+
+function showTab(id,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sec-'+id).classList.add('on');
+  if(el)el.classList.add('on');
+  if(id==='dash')renderDash();
+  if(id==='orders')renderKanban();
+  if(id==='menu')renderMenu();
+  if(id==='customers')renderCustomers('');
+  if(id==='grocery')renderGrocery();
+  if(id==='new')renderPicker();
+}
+
+function renderDash(){
+  document.getElementById('m1').textContent=APP.orders.filter(o=>o.status!=='Picked Up').length;
+  document.getElementById('m2').textContent='$'+APP.orders.reduce((s,o)=>s+ot(o),0).toFixed(0);
+  document.getElementById('m3').textContent=customers().length;
+  document.getElementById('m4').textContent=APP.orders.filter(o=>o.status==='Ready').length;
+  document.getElementById('bcnt').textContent=customers().length;
+  var tot=APP.orders.length||1;
+  document.getElementById('pipeline').innerHTML=STATUSES.map(s=>{
+    var c=APP.orders.filter(o=>o.status===s).length;
+    return '<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:var(--mu)">'+s+'</span><span style="font-weight:500">'+c+'</span></div><div class="pb"><div class="pf" style="width:'+Math.round(c/tot*100)+'%"></div></div></div>';
+  }).join('');
+  var af=document.getElementById('activity');
+  af.innerHTML=LOG.length?LOG.slice(0,6).map(a=>'<div class="ai"><div class="ad"></div><div class="at2">'+a.m+'</div><div class="atm">'+timeAgo(a.t)+'</div></div>').join(''):'<div class="empty">No activity yet</div>';
+  updateZapierStatus();
+}
+
+function updateZapierStatus(){
+  var hasZaps=CFG.zap1||CFG.zap2;
+  var zd=document.getElementById('zp-dot');
+  var zl=document.getElementById('zp-lbl');
+  if(hasZaps){zd.className='dot ok';zl.textContent='Zapier active';}
+  else{zd.className='dot';zl.textContent='Zapier: configure';}
+  var cd=document.getElementById('cu-dot');
+  var cl=document.getElementById('cu-lbl');
+  if(CFG.cuToken){cd.className='dot ok';cl.textContent='ClickUp linked';}
+  else{cd.className='dot';cl.textContent='ClickUp: configure';}
+}
+
+function buildPayload(event,o){
+  var items=o?o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'× ':'')+m.name:''}).filter(Boolean).join(' · '):'';
+  if(!o)return null;
+  return{event,order_id:o.id,customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,items_text:items,total:ot(o).toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
+}
+
+async function fireZap(url,data){
+  if(!url){return}
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    return true;
+  }catch(e){return false}
+}
+
+async function zapNewOrder(o){
+  if(!CFG.zap1)return;
+  var ok=await fireZap(CFG.zap1,buildPayload('order.new',o));
+  logIt('Zap 1 fired: new order '+o.name);
+  if(ok!==false)toast('Order sent to Zapier → ClickUp + Twilio SMS + SendGrid email');
+}
+
+async function zapStatusChange(o,oldStatus){
+  if(!CFG.zap2)return;
+  var p=buildPayload('order.status',o);
+  p.old_status=oldStatus;p.new_status=o.status;
+  var ok=await fireZap(CFG.zap2,p);
+  if(ok!==false&&o.status==='Ready')toast('Zapier → Twilio "order ready" SMS sent to '+o.name);
+  logIt('Zap 2 fired: '+o.name+' → '+o.status);
+}
+
+async function syncOneZap(){
+  var o=APP.orders.find(x=>x.id===viewOID);if(!o)return;
+  await zapNewOrder(o);
+}
+
+async function syncAllCU(){
+  if(!CFG.zap2&&!CFG.cuToken){toast('Configure Zapier or ClickUp in Settings first');return}
+  toast('Syncing all active orders…');
+  for(var o of APP.orders.filter(x=>x.status!=='Picked Up')){
+    if(CFG.cuToken)await cuUpdateTask(o);
+    else if(CFG.zap2)await zapStatusChange(o,o.status);
+  }
+  toast('Sync complete');renderKanban();
+}
+
+function renderKanban(){
+  document.getElementById('kanban').innerHTML=STATUSES.map(st=>{
+    var orders=APP.orders.filter(o=>o.status===st);
+    var cards=orders.length?orders.map(o=>{
+      var total=ot(o);
+      var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', ');
+      var sync=o.cuTaskId?'<span style="color:var(--gn);font-size:10px" title="Synced to ClickUp">✓</span>':CFG.zap1?'<span style="color:var(--mu);font-size:10px" title="Zapier connected">⚡</span>':'';
+      return '<div class="oc" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+'</span></div></div>';
+    }).join(''):'<div class="empty" style="padding:.375rem">—</div>';
+    return '<div class="kcol"><div class="kh"><span>'+st.toUpperCase()+'</span><span class="kct">'+orders.length+'</span></div>'+cards+'</div>';
+  }).join('');
+}
+
+function viewOrder(id){
+  var o=APP.orders.find(x=>x.id===id);if(!o)return;
+  viewOID=id;
+  document.getElementById('omtitle').textContent=o.name;
+  var total=ot(o);
+  var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'<div class="gr"><span>'+(it.qty>1?it.qty+'× ':'')+m.name+'</span><span>$'+(m.price*it.qty).toFixed(0)+'</span></div>':''}).join('');
+  var pc=o.payStatus==='Paid in Full'?'bgn':o.payStatus==='Deposit Paid'?'bam':'brd';
+  document.getElementById('ombody').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.875rem">'+
+    '<div><div style="font-size:10px;color:var(--mu)">PHONE</div><div style="font-size:13px">'+o.phone+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--mu)">EMAIL</div><div style="font-size:13px">'+(o.email||'—')+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--mu)">PICKUP</div><div style="font-size:13px">'+o.pickup+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--mu)">PAYMENT</div><span class="badge '+pc+'">'+o.payStatus+' · '+o.payMethod+'</span></div>'+
+    '</div>'+
+    (o.notes?'<div style="background:var(--am2);border-radius:6px;padding:7px 9px;font-size:11px;margin-bottom:.75rem;color:var(--am)">'+o.notes+'</div>':'')+
+    (o.cuTaskId?'<div style="background:var(--pu2);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--pu)"><i class="ti ti-checkbox"></i> ClickUp: '+o.cuTaskId+'</div>':'')+
+    items+
+    '<div class="gr" style="font-weight:500;font-size:13px;border-bottom:none;padding-top:8px"><span>Total</span><span style="color:var(--am)">$'+total.toFixed(0)+'</span></div>'+
+    '<div class="divd"></div>'+
+    '<div class="fg2" style="gap:8px">'+
+    '<div class="fg"><label>ORDER STATUS</label><select id="vm-st" onchange="updateSt(\''+id+'\',this.value)">'+STATUSES.map(s=>'<option'+(o.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '<div class="fg"><label>PAYMENT STATUS</label><select id="vm-pay" onchange="updatePay(\''+id+'\',this.value)">'+['Unpaid','Deposit Paid','Paid in Full'].map(s=>'<option'+(o.payStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '</div>';
+  document.getElementById('mo-order').classList.add('open');
+}
+
+async function updateSt(id,s){
+  var o=APP.orders.find(x=>x.id===id);if(!o)return;
+  var old=o.status;o.status=s;
+  logIt(o.name+' → '+s);
+  if(CFG.zap2)await zapStatusChange(o,old);
+  if(CFG.autoSync&&CFG.cuToken)await cuUpdateTask(o);
+  renderKanban();renderDash();toast('Status updated → Zapier notified');
+}
+function updatePay(id,s){var o=APP.orders.find(x=>x.id===id);if(o){o.payStatus=s;toast('Payment updated')}}
+function closeOrder(){document.getElementById('mo-order').classList.remove('open');viewOID=null}
+function delOrder(){if(!viewOID)return;if(!confirm('Delete?'))return;APP.orders=APP.orders.filter(o=>o.id!==viewOID);logIt('Order deleted');closeOrder();renderKanban();renderDash();toast('Deleted')}
+
+function renderPicker(){
+  iqtys={};APP.menu.forEach(m=>iqtys[m.id]=0);
+  var el=document.getElementById('ipicker');
+  if(!APP.menu.length){el.innerHTML='<div class="empty">Add menu items first — or sync from Google Sheets in Settings.</div>';return}
+  el.innerHTML=APP.menu.map(m=>'<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:7px;align-items:center;margin-bottom:8px">'+
+    '<div><div style="font-size:12px;font-weight:500">'+m.name+'</div><div style="font-size:10px;color:var(--mu)">'+m.type+' · $'+m.price+'</div></div>'+
+    '<button onclick="aq(\''+m.id+'\',-1)" style="width:26px;height:26px;border:0.5px solid var(--bd2);border-radius:6px;background:transparent;cursor:pointer;font-size:14px;color:var(--text)">−</button>'+
+    '<span id="q-'+m.id+'" style="font-size:13px;font-weight:500;min-width:18px;text-align:center">0</span>'+
+    '<button onclick="aq(\''+m.id+'\',1)" style="width:26px;height:26px;border:0.5px solid var(--bd2);border-radius:6px;background:transparent;cursor:pointer;font-size:14px;color:var(--text)">+</button>'+
+  '</div>').join('');
+  updTotal();
+}
+function aq(id,d){iqtys[id]=Math.max(0,(iqtys[id]||0)+d);var el=document.getElementById('q-'+id);if(el)el.textContent=iqtys[id];updTotal()}
+function updTotal(){var t=APP.menu.reduce((s,m)=>s+(m.price*(iqtys[m.id]||0)),0);document.getElementById('itotal').textContent='$'+t.toFixed(2)}
+
+async function submitOrder(){
+  var name=document.getElementById('on').value.trim();
+  var phone=document.getElementById('op').value.trim();
+  var pickup=document.getElementById('od').value;
+  if(!name||!phone||!pickup){toast('Name, phone and pickup date required');return}
+  var items=APP.menu.filter(m=>iqtys[m.id]>0).map(m=>({mid:m.id,qty:iqtys[m.id]}));
+  if(!items.length){toast('Select at least one item');return}
+  var o={id:uid(),name,phone,email:document.getElementById('oe').value.trim(),pickup,notes:document.getElementById('onotes').value.trim(),items,payMethod:document.getElementById('opm').value,payStatus:document.getElementById('ops').value,status:'New',cuTaskId:null,created:new Date().toISOString()};
+  APP.orders.push(o);logIt('New order: '+name);
+  toast('Order placed! Firing to Zapier…');
+  if(CFG.zap1)await zapNewOrder(o);
+  if(CFG.autoSync&&CFG.cuToken)await cuCreateTask(o);
+  resetForm();
+  showTab('orders',document.querySelector('[data-t=orders]'));
+}
+function resetForm(){['on','op','oe','od','onotes'].forEach(id=>{document.getElementById(id).value=''});renderPicker()}
+
+async function syncMenu(){
+  var url=document.getElementById('sheets-csv').value||CFG.sheetsCSV;
+  if(!url){toast('Paste the Google Sheets CSV URL in Settings first');return}
+  var st=document.getElementById('sheets-status');
+  if(st)st.textContent='Syncing…';
+  toast('Fetching menu from Google Sheets…');
+  try{
+    var r=await fetch(url);
+    var csv=await r.text();
+    var lines=csv.trim().split('\n').slice(1);
+    var added=0;
+    lines.forEach(line=>{
+      var cols=line.split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+      if(!cols[0])return;
+      var existing=APP.menu.find(m=>m.name===cols[0]);
+      if(!existing){
+        APP.menu.push({id:uid(),name:cols[0],desc:cols[1]||'',type:cols[2]||'Platter',avail:cols[5]||'Always',price:parseFloat(cols[3])||0,cost:parseFloat(cols[4])||0,ing:cols[6]||'',serv:parseInt(cols[7])||1,prep:parseFloat(cols[8])||0});
+        added++;
+      }
+    });
+    if(st)st.textContent=added+' new items added';
+    renderMenu();toast(added+' menu items synced from Google Sheets');
+  }catch(e){
+    if(st)st.textContent='Error: '+e.message;
+    toast('Could not fetch — check URL and CORS (publish as CSV)');
+  }
+}
+
+function renderMenu(){
+  var g=document.getElementById('mgrid');
+  if(!APP.menu.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No items yet. Click "Quick Add Item" or sync from Google Sheets.</div>';return}
+  g.innerHTML=APP.menu.map((m,i)=>'<div class="mi"><div class="mia"><button class="btn bs2" onclick="editMI('+i+')"><i class="ti ti-edit" aria-hidden="true"></i></button><button class="btn bs2 bd2" onclick="delMI('+i+')"><i class="ti ti-trash" aria-hidden="true"></i></button></div><div class="min2">'+m.name+'</div><div style="font-size:11px;color:var(--mu);margin-bottom:5px"><span class="badge bgr">'+m.type+'</span></div><div style="font-size:11px;color:var(--mu);margin-bottom:7px">'+m.desc+'</div><div class="mip">$'+m.price+'</div><div style="font-size:10px;color:var(--hi)">Cost: $'+m.cost+' · '+Math.round((1-m.cost/m.price)*100)+'% margin</div></div>').join('');
+}
+function openMenu(idx){editMI=idx!==undefined?idx:-1;var m=idx!==undefined?APP.menu[idx]:null;document.getElementById('mmtitle').textContent=m?'Edit Item':'Add Menu Item';['mm-n','mm-d','mm-t','mm-a','mm-p','mm-c','mm-i','mm-s','mm-pr'].forEach(id=>{var k=id.replace('mm-','');var map={'n':'name','d':'desc','t':'type','a':'avail','p':'price','c':'cost','i':'ing','s':'serv','pr':'prep'};document.getElementById(id).value=m&&m[map[k]]!==undefined?m[map[k]]:''});document.getElementById('mo-menu').classList.add('open')}
+function closeMenu(){document.getElementById('mo-menu').classList.remove('open')}
+function editMI(i){openMenu(i)}
+function delMI(i){if(!confirm('Remove?'))return;APP.menu.splice(i,1);renderMenu();toast('Removed')}
+function saveMI(){
+  var n=document.getElementById('mm-n').value.trim();var p=parseFloat(document.getElementById('mm-p').value);
+  if(!n||isNaN(p)){toast('Name and price required');return}
+  var m={id:editMI>=0?APP.menu[editMI].id:uid(),name:n,desc:document.getElementById('mm-d').value,type:document.getElementById('mm-t').value,avail:document.getElementById('mm-a').value,price:p,cost:parseFloat(document.getElementById('mm-c').value)||0,ing:document.getElementById('mm-i').value,serv:parseInt(document.getElementById('mm-s').value)||1,prep:parseFloat(document.getElementById('mm-pr').value)||0};
+  if(editMI>=0)APP.menu[editMI]=m;else APP.menu.push(m);
+  closeMenu();renderMenu();toast(editMI>=0?'Updated':'Item added');
+}
+
+function renderCustomers(q){
+  q=(q||'').toLowerCase();
+  var list=customers().filter(c=>!q||c.name.toLowerCase().includes(q)||c.phone.includes(q));
+  var el=document.getElementById('clist');
+  if(!list.length){el.innerHTML='<div class="empty">No customers yet — orders build your database automatically.</div>';return}
+  el.innerHTML=list.map(c=>{var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();return'<div class="cr"><div class="av">'+ini+'</div><div class="ci"><div class="cn2">'+c.name+'</div><div class="cc">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div class="css2"><div class="co">'+c.orders+' order'+(c.orders!==1?'s':'')+'</div><div class="csp">$'+c.spent.toFixed(0)+' total</div></div></div>'}).join('');
+}
+
+function renderGrocery(){
+  var all=document.getElementById('ga').checked;var date=document.getElementById('gd').value;
+  var rel=APP.orders.filter(o=>o.status!=='Picked Up'&&(all||o.pickup===date));
+  var agg={},ing={};
+  rel.forEach(o=>o.items.forEach(it=>{var m=APP.menu.find(x=>x.id===it.mid);if(!m)return;if(!agg[m.name])agg[m.name]={qty:0,cost:0};agg[m.name].qty+=it.qty;agg[m.name].cost+=m.cost*it.qty;(m.ing||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(i=>{ing[i]=(ing[i]||0)+it.qty})}));
+  document.getElementById('gcost').textContent='$'+Object.values(agg).reduce((s,v)=>s+v.cost,0).toFixed(0);
+  var el=document.getElementById('glist');
+  if(!Object.keys(agg).length){el.innerHTML='<div class="empty">No orders match the filter.</div>';return}
+  el.innerHTML='<div style="margin-bottom:.875rem"><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.375rem">ORDERS TO FILL</div>'+Object.entries(agg).map(([n,v])=>'<div class="gr"><span>'+v.qty+'× '+n+'</span><span style="color:var(--mu)">~$'+v.cost.toFixed(0)+'</span></div>').join('')+'</div><div><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.375rem">INGREDIENTS NEEDED</div>'+Object.entries(ing).map(([i,q])=>'<div class="gr"><span style="text-transform:capitalize">'+i+'</span><span class="badge bam">×'+q+'</span></div>').join('')+'</div>';
+}
+
+async function sendBlast(){
+  if(!CFG.zap3){toast('Configure Zap 3 (blast webhook) in Settings first');return}
+  var occ=document.getElementById('b-occ').value;var msg=document.getElementById('b-msg').value;
+  if(!msg){toast('Add a message first');return}
+  var custs=customers();
+  var payload={event:'blast',occasion:occ,message:msg,cutoff_date:document.getElementById('b-cut').value,customer_count:custs.length,customers:custs.map(c=>({name:c.name,phone:c.phone,email:c.email})),admin_name:CFG.bizName};
+  var ok=await fireZap(CFG.zap3,payload);
+  logIt('Blast sent: '+(occ||'announcement')+' to '+custs.length+' customers');
+  renderDash();toast('Blast fired to Zapier → Twilio SMS + SendGrid email to '+custs.length+' customers');
+}
+
+function renderStatusMap(){
+  var el=document.getElementById('smap');
+  el.innerHTML='<tr><th>App Stage</th><th>ClickUp Status Name</th></tr>'+STATUSES.map(s=>'<tr><td>'+s+'</td><td><input style="width:100%" value="'+(CFG.statusMap[s]||'')+'" placeholder="e.g. in progress" onchange="CFG.statusMap[\''+s+'\']=this.value"></td></tr>').join('');
+}
+
+function renderWH(){
+  var el=document.getElementById('whlist');
+  if(!APP.webhooks.length){el.innerHTML='<div style="font-size:11px;color:var(--mu);margin-bottom:.375rem">No extra webhooks.</div>';return}
+  el.innerHTML=APP.webhooks.map((w,i)=>'<div class="whr"><select style="width:130px;font-size:11px;padding:4px 7px;border-radius:6px;border:0.5px solid var(--bd)" onchange="APP.webhooks['+i+'].event=this.value">'+['order.new','order.status','order.paid','blast'].map(e=>'<option'+(w.event===e?' selected':'')+'>'+e+'</option>').join('')+'</select><input value="'+w.url+'" placeholder="https://…" style="flex:1;font-size:12px" onchange="APP.webhooks['+i+'].url=this.value"><button class="btn bs2 bd2" onclick="APP.webhooks.splice('+i+',1);renderWH()"><i class="ti ti-x" aria-hidden="true"></i></button></div>').join('');
+}
+function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
+
+async function cuAPI(method,path,body){if(!CFG.cuToken)throw new Error('No token');var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':CFG.cuToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('ClickUp '+r.status);return r.json()}
+function cuDesc(o){var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');return'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+o.pickup+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'')}
+async function cuCreateTask(o){try{var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:'Order — '+o.name+' ('+o.pickup+')',description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:new Date(o.pickup).getTime(),notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp create failed: '+e.message)}}
+async function cuUpdateTask(o){if(!o.cuTaskId){cuCreateTask(o);return}try{await cuAPI('PUT','/task/'+o.cuTaskId,{status:CFG.statusMap[o.status]||'Open'});logIt('ClickUp updated: '+o.name);}catch(e){}}
+async function testCU(){var st=document.getElementById('cu-status');st.textContent='Testing…';var tok=document.getElementById('cu-token').value.trim();CFG.cuToken=tok;try{var r=await cuAPI('GET','/user');st.textContent='Connected as '+r.user.username;document.getElementById('cu-dot').className='dot ok';document.getElementById('cu-lbl').textContent=r.user.username;toast('ClickUp connected ✓')}catch(e){st.textContent='Error: '+e.message;document.getElementById('cu-dot').className='dot err';toast('Check token or CORS')}}
+async function fetchCUStatuses(){var lid=document.getElementById('cu-list').value.trim();CFG.cuListId=lid;if(!lid){toast('Enter List ID first');return}try{var r=await cuAPI('GET','/list/'+lid);var ss=r.statuses.map(s=>s.status);STATUSES.forEach((s,i)=>{if(ss[i])CFG.statusMap[s]=ss[i]});renderStatusMap();toast('Fetched: '+ss.join(', '))}catch(e){toast('Could not fetch: '+e.message)}}
+
+function exportCSV(){var rows=[['Name','Phone','Email','Pickup','Status','Payment','Total','Items']];APP.orders.forEach(o=>{var it=o.items.map(i=>{var m=APP.menu.find(x=>x.id===i.mid);return m?(i.qty>1?i.qty+'×':'')+m.name:''}).join('; ');rows.push([o.name,o.phone,o.email,o.pickup,o.status,o.payStatus+' '+o.payMethod,ot(o).toFixed(2),it])});dlBlob(rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'),'ree-orders.csv','text/csv');toast('CSV exported')}
+function exportJSON(){dlBlob(JSON.stringify({orders:APP.orders,menu:APP.menu,webhooks:APP.webhooks,cfg:CFG,log:LOG},null,2),'ree-backup.json','application/json');toast('Backup downloaded')}
+function importJSON(inp){var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.orders)APP.orders=d.orders;if(d.menu)APP.menu=d.menu;if(d.webhooks)APP.webhooks=d.webhooks;if(d.cfg)Object.assign(CFG,d.cfg);if(d.log)LOG=d.log;renderDash();renderMenu();toast('Backup restored ✓')}catch(e){toast('Invalid file')}};r.readAsText(inp.files[0])}
+function clearData(){if(!confirm('Clear all orders and customers?'))return;APP.orders=[];LOG=[];renderDash();toast('Cleared')}
+function dlBlob(c,n,t){var b=new Blob([c],{type:t});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();URL.revokeObjectURL(a.href)}
+
+function genDeploy(){
+  var snap=JSON.stringify({menu:APP.menu,cfg:{...CFG,cuToken:'',zap1:CFG.zap1,zap2:CFG.zap2,zap3:CFG.zap3,zap4:CFG.zap4,sheetsCSV:CFG.sheetsCSV}});
+  var html='<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>'+CFG.bizName+' — Orders</title>\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">\n</head>\n<body>\n<p style="font-family:sans-serif;padding:2rem;color:#555;text-align:center">App shell — full app code embeds here on deploy.<br>Embedded config: '+APP.menu.length+' menu items, Zapier Zap1: '+(CFG.zap1?'configured':'not set')+', Zap2: '+(CFG.zap2?'configured':'not set')+'<br><br>Generated: '+new Date().toLocaleString()+'</p>\n<script>\nvar SNAPSHOT = '+snap+';\nconsole.log("App data:", SNAPSHOT);\nconsole.log("Paste Zapier webhook URLs in the Settings tab before deploying for production.");\n</scr'+'ipt>\n</body>\n</html>';
+  dlBlob(html,'ree-kitchen.html','text/html');
+  toast('App downloaded! Drag to netlify.com/drop or push to GitHub Pages');
+  logIt('App exported for deployment');
+}
+
+function initSample(){
+  APP.menu=[
+    {id:uid(),name:'Oxtail Platter (Half Pan)',desc:'Slow-braised, serves 4-6',type:'Platter',avail:'Always',price:175,cost:60,ing:'oxtail,butter beans,scotch bonnet,allspice,thyme,garlic,onion',serv:5,prep:4},
+    {id:uid(),name:'Oxtail Plate',desc:'With rice & peas and veggie',type:'Plate',avail:'Always',price:28,cost:9,ing:'oxtail,rice,kidney beans,cabbage',serv:1,prep:4},
+    {id:uid(),name:'Jerk Chicken Platter (Half Pan)',desc:'Serves 4-5',type:'Platter',avail:'Always',price:115,cost:35,ing:'whole chicken,jerk seasoning,scotch bonnet,allspice,thyme',serv:4,prep:2},
+    {id:uid(),name:'Jerk Chicken Plate',desc:'Quarter chicken with rice & peas',type:'Plate',avail:'Always',price:18,cost:5,ing:'chicken quarter,jerk seasoning,rice,kidney beans',serv:1,prep:2},
+    {id:uid(),name:'Rasta Pasta (Full Pan)',desc:'Creamy jerk chicken pasta, serves 8',type:'Platter',avail:'Always',price:95,cost:28,ing:'penne,heavy cream,jerk chicken,bell peppers,parmesan',serv:8,prep:1},
+    {id:uid(),name:'Rice & Peas (Half Pan)',desc:'Coconut rice, serves 6',type:'Side',avail:'Always',price:38,cost:10,ing:'rice,kidney beans,coconut milk,thyme,scallion',serv:6,prep:1},
+    {id:uid(),name:'Mac & Cheese (Half Pan)',desc:'Southern creamy style, serves 6',type:'Side',avail:'Always',price:42,cost:12,ing:'elbow pasta,cheddar,cream cheese,heavy cream,eggs,butter',serv:6,prep:1},
+  ];
+  var t=new Date().toISOString().split('T')[0];var t2=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  APP.orders=[
+    {id:uid(),name:'Natalie Johnson',phone:'+16785550101',email:'nat@email.com',pickup:t,notes:'No spicy sides',items:[{mid:APP.menu[0].id,qty:1},{mid:APP.menu[5].id,qty:1}],payMethod:'Zelle',payStatus:'Paid in Full',status:'Ready',cuTaskId:null,created:new Date(Date.now()-86400000*2).toISOString()},
+    {id:uid(),name:'Marcus Webb',phone:'+14045550182',email:'',pickup:t2,notes:'',items:[{mid:APP.menu[1].id,qty:3},{mid:APP.menu[6].id,qty:1}],payMethod:'Cash App',payStatus:'Deposit Paid',status:'Confirmed',cuTaskId:null,created:new Date(Date.now()-86400000).toISOString()},
+    {id:uid(),name:'Denise Carter',phone:'+17705550247',email:'denise@email.com',pickup:t2,notes:'Bag each separately',items:[{mid:APP.menu[0].id,qty:1},{mid:APP.menu[4].id,qty:1}],payMethod:'Stripe',payStatus:'Paid in Full',status:'In Progress',cuTaskId:null,created:new Date(Date.now()-3600000*6).toISOString()},
+    {id:uid(),name:'Sandra Okafor',phone:'+16785550319',email:'',pickup:t2,notes:'',items:[{mid:APP.menu[3].id,qty:4},{mid:APP.menu[5].id,qty:1}],payMethod:'Cash App',payStatus:'Unpaid',status:'New',cuTaskId:null,created:new Date().toISOString()},
+  ];
+  logIt('System ready');
+}
+
+document.getElementById('mo-menu').addEventListener('click',function(e){if(e.target===this)closeMenu()});
+document.getElementById('mo-order').addEventListener('click',function(e){if(e.target===this)closeOrder()});
+
+initSample();renderDash();renderStatusMap();renderWH();
+var bc=document.getElementById('b-cut');if(!bc.value)bc.value=new Date(Date.now()+5*86400000).toISOString().split('T')[0];
+</script>
