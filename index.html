@@ -188,6 +188,28 @@ textarea{resize:vertical;min-height:55px}
         <div class="fg"><label>PHONE *</label><input id="op" placeholder="+1 (555) 000-0000"></div>
         <div class="fg"><label>EMAIL</label><input id="oe" type="email" placeholder="email@example.com"></div>
         <div class="fg"><label>PICKUP DATE *</label><input id="od" type="date"></div>
+        <div class="fg"><label>PICKUP TIME *</label>
+          <select id="otime">
+            <option value="">Select time…</option>
+            <option value="11:00">11:00 AM</option>
+            <option value="11:30">11:30 AM</option>
+            <option value="12:00">12:00 PM</option>
+            <option value="12:30">12:30 PM</option>
+            <option value="13:00">1:00 PM</option>
+            <option value="13:30">1:30 PM</option>
+            <option value="14:00">2:00 PM</option>
+            <option value="14:30">2:30 PM</option>
+            <option value="15:00">3:00 PM</option>
+            <option value="15:30">3:30 PM</option>
+            <option value="16:00">4:00 PM</option>
+            <option value="16:30">4:30 PM</option>
+            <option value="17:00">5:00 PM</option>
+            <option value="17:30">5:30 PM</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="18:30">6:30 PM</option>
+            <option value="19:00">7:00 PM</option>
+          </select>
+        </div>
         <div class="fg" style="grid-column:1/-1"><label>NOTES / ALLERGIES</label><input id="onotes" placeholder="Special requests, allergies, delivery notes…"></div>
       </div>
     </div>
@@ -489,7 +511,9 @@ function updateZapierStatus(){
 function buildPayload(event,o){
   var items=o?o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'× ':'')+m.name:''}).filter(Boolean).join(' · '):'';
   if(!o)return null;
-  return{event,order_id:o.id,task_name:o.name+' | $'+ot(o).toFixed(0),customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,items_text:items,total:ot(o).toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
+  // Use noon local time for ClickUp due_date to prevent UTC timezone day-shift
+  var pickupNoon=o.pickup?new Date(o.pickup+'T12:00:00').getTime():null;
+  return{event,order_id:o.id,task_name:o.name+' | $'+ot(o).toFixed(0),customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,pickup_time:o.pickupDisplay||o.pickupTime||'',pickup_datetime:o.pickup+(o.pickupDisplay?' at '+o.pickupDisplay:''),pickup_timestamp_ms:pickupNoon,items_text:items,total:ot(o).toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
 }
 
 async function fireZap(url,data){
@@ -538,7 +562,7 @@ function renderKanban(){
       var total=ot(o);
       var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', ');
       var sync=o.cuTaskId?'<span style="color:var(--gn);font-size:10px" title="Synced to ClickUp">✓</span>':CFG.zap1?'<span style="color:var(--mu);font-size:10px" title="Zapier connected">⚡</span>':'';
-      return '<div class="oc" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+'</span></div></div>';
+      return '<div class="oc" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</span></div></div>';
     }).join(''):'<div class="empty" style="padding:.375rem">—</div>';
     return '<div class="kcol"><div class="kh"><span>'+st.toUpperCase()+'</span><span class="kct">'+orders.length+'</span></div>'+cards+'</div>';
   }).join('');
@@ -555,7 +579,7 @@ function viewOrder(id){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.875rem">'+
     '<div><div style="font-size:10px;color:var(--mu)">PHONE</div><div style="font-size:13px">'+o.phone+'</div></div>'+
     '<div><div style="font-size:10px;color:var(--mu)">EMAIL</div><div style="font-size:13px">'+(o.email||'—')+'</div></div>'+
-    '<div><div style="font-size:10px;color:var(--mu)">PICKUP</div><div style="font-size:13px">'+o.pickup+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--mu)">PICKUP</div><div style="font-size:13px">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</div></div>'+
     '<div><div style="font-size:10px;color:var(--mu)">PAYMENT</div><span class="badge '+pc+'">'+o.payStatus+' · '+o.payMethod+'</span></div>'+
     '</div>'+
     (o.notes?'<div style="background:var(--am2);border-radius:6px;padding:7px 9px;font-size:11px;margin-bottom:.75rem;color:var(--am)">'+o.notes+'</div>':'')+
@@ -601,10 +625,14 @@ async function submitOrder(){
   var name=document.getElementById('on').value.trim();
   var phone=document.getElementById('op').value.trim();
   var pickup=document.getElementById('od').value;
+  var pickupTime=document.getElementById('otime').value;
   if(!name||!phone||!pickup){toast('Name, phone and pickup date required');return}
+  if(!pickupTime){toast('Please select a pickup time');return}
   var items=APP.menu.filter(m=>iqtys[m.id]>0).map(m=>({mid:m.id,qty:iqtys[m.id]}));
   if(!items.length){toast('Select at least one item');return}
-  var o={id:uid(),name,phone,email:document.getElementById('oe').value.trim(),pickup,notes:document.getElementById('onotes').value.trim(),items,payMethod:document.getElementById('opm').value,payStatus:document.getElementById('ops').value,status:'New',cuTaskId:null,created:new Date().toISOString()};
+  // Build pickup datetime at noon local time to avoid UTC timezone day-shift in ClickUp
+  var pickupDisplay=formatTime12h(pickupTime);
+  var o={id:uid(),name,phone,email:document.getElementById('oe').value.trim(),pickup,pickupTime,pickupDisplay,notes:document.getElementById('onotes').value.trim(),items,payMethod:document.getElementById('opm').value,payStatus:document.getElementById('ops').value,status:'New',cuTaskId:null,created:new Date().toISOString()};
   APP.orders.push(o);logIt('New order: '+name);
   toast('Order placed — added to the workflow!');
   if(CFG.zap1)await zapNewOrder(o);
@@ -612,7 +640,8 @@ async function submitOrder(){
   resetForm();
   showTab('orders',document.querySelector('[data-t=orders]'));
 }
-function resetForm(){['on','op','oe','od','onotes'].forEach(id=>{document.getElementById(id).value=''});renderPicker()}
+function formatTime12h(t){if(!t)return'';var p=t.split(':');var h=parseInt(p[0]);var m=p[1];var ampm=h>=12?'PM':'AM';var h12=h%12||12;return h12+':'+m+' '+ampm}
+function resetForm(){['on','op','oe','od','onotes'].forEach(id=>{document.getElementById(id).value=''});var ot=document.getElementById('otime');if(ot)ot.value='';renderPicker()}
 
 async function syncMenu(){
   var url=document.getElementById('sheets-csv').value||CFG.sheetsCSV;
@@ -702,8 +731,8 @@ function renderWH(){
 function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
 
 async function cuAPI(method,path,body){if(!CFG.cuToken)throw new Error('No token');var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':CFG.cuToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('ClickUp '+r.status);return r.json()}
-function cuDesc(o){var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');return'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+o.pickup+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'')}
-async function cuCreateTask(o){try{var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:o.name+' | $'+ot(o).toFixed(0),description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:new Date(o.pickup).getTime(),notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp: could not add to queue — '+e.message)}}
+function cuDesc(o){var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');var pickupStr=o.pickup+(o.pickupDisplay?' at '+o.pickupDisplay:'');return'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+pickupStr+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'')}
+async function cuCreateTask(o){try{var dueMs=o.pickup?new Date(o.pickup+'T12:00:00').getTime():null;var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:o.name+' | $'+ot(o).toFixed(0),description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:dueMs,notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp: could not add to queue — '+e.message)}}
 async function cuUpdateTask(o){if(!o.cuTaskId){cuCreateTask(o);return}try{await cuAPI('PUT','/task/'+o.cuTaskId,{status:CFG.statusMap[o.status]||'Open'});logIt('ClickUp updated: '+o.name);}catch(e){}}
 async function testCU(){var st=document.getElementById('cu-status');st.textContent='Testing…';var tok=document.getElementById('cu-token').value.trim();CFG.cuToken=tok;try{var r=await cuAPI('GET','/user');st.textContent='Connected as '+r.user.username;document.getElementById('cu-dot').className='dot ok';document.getElementById('cu-lbl').textContent=r.user.username;toast('ClickUp connected ✓')}catch(e){st.textContent='Error: '+e.message;document.getElementById('cu-dot').className='dot err';toast('Check token or CORS')}}
 async function fetchCUStatuses(){var lid=document.getElementById('cu-list').value.trim();CFG.cuListId=lid;if(!lid){toast('Enter List ID first');return}try{var r=await cuAPI('GET','/list/'+lid);var ss=r.statuses.map(s=>s.status);STATUSES.forEach((s,i)=>{if(ss[i])CFG.statusMap[s]=ss[i]});renderStatusMap();toast('Fetched: '+ss.join(', '))}catch(e){toast('Could not fetch: '+e.message)}}
