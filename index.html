@@ -489,7 +489,7 @@ function updateZapierStatus(){
 function buildPayload(event,o){
   var items=o?o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'× ':'')+m.name:''}).filter(Boolean).join(' · '):'';
   if(!o)return null;
-  return{event,order_id:o.id,customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,items_text:items,total:ot(o).toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
+  return{event,order_id:o.id,task_name:o.name+' | $'+ot(o).toFixed(0),customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,items_text:items,total:ot(o).toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
 }
 
 async function fireZap(url,data){
@@ -606,7 +606,7 @@ async function submitOrder(){
   if(!items.length){toast('Select at least one item');return}
   var o={id:uid(),name,phone,email:document.getElementById('oe').value.trim(),pickup,notes:document.getElementById('onotes').value.trim(),items,payMethod:document.getElementById('opm').value,payStatus:document.getElementById('ops').value,status:'New',cuTaskId:null,created:new Date().toISOString()};
   APP.orders.push(o);logIt('New order: '+name);
-  toast('Order placed! Firing to Zapier…');
+  toast('Order placed — added to the workflow!');
   if(CFG.zap1)await zapNewOrder(o);
   if(CFG.autoSync&&CFG.cuToken)await cuCreateTask(o);
   resetForm();
@@ -703,7 +703,7 @@ function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
 
 async function cuAPI(method,path,body){if(!CFG.cuToken)throw new Error('No token');var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':CFG.cuToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('ClickUp '+r.status);return r.json()}
 function cuDesc(o){var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');return'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+o.pickup+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'')}
-async function cuCreateTask(o){try{var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:'Order — '+o.name+' ('+o.pickup+')',description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:new Date(o.pickup).getTime(),notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp create failed: '+e.message)}}
+async function cuCreateTask(o){try{var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',{name:o.name+' | $'+ot(o).toFixed(0),description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:new Date(o.pickup).getTime(),notify_all:false});o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);document.getElementById('cu-dot').className='dot ok';renderKanban();}catch(e){toast('ClickUp: could not add to queue — '+e.message)}}
 async function cuUpdateTask(o){if(!o.cuTaskId){cuCreateTask(o);return}try{await cuAPI('PUT','/task/'+o.cuTaskId,{status:CFG.statusMap[o.status]||'Open'});logIt('ClickUp updated: '+o.name);}catch(e){}}
 async function testCU(){var st=document.getElementById('cu-status');st.textContent='Testing…';var tok=document.getElementById('cu-token').value.trim();CFG.cuToken=tok;try{var r=await cuAPI('GET','/user');st.textContent='Connected as '+r.user.username;document.getElementById('cu-dot').className='dot ok';document.getElementById('cu-lbl').textContent=r.user.username;toast('ClickUp connected ✓')}catch(e){st.textContent='Error: '+e.message;document.getElementById('cu-dot').className='dot err';toast('Check token or CORS')}}
 async function fetchCUStatuses(){var lid=document.getElementById('cu-list').value.trim();CFG.cuListId=lid;if(!lid){toast('Enter List ID first');return}try{var r=await cuAPI('GET','/list/'+lid);var ss=r.statuses.map(s=>s.status);STATUSES.forEach((s,i)=>{if(ss[i])CFG.statusMap[s]=ss[i]});renderStatusMap();toast('Fetched: '+ss.join(', '))}catch(e){toast('Could not fetch: '+e.message)}}
