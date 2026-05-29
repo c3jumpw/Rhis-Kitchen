@@ -1017,6 +1017,22 @@ function initUI(){
         document.getElementById('cu-status').textContent='Connected as '+d.user.username;
       }
     }).catch(()=>{});
+    // Also auto-fetch custom field map so fields populate on every new order
+    if(CFG.cuListId){
+      fetch('https://api.clickup.com/api/v2/list/'+CFG.cuListId+'/field',{headers:{'Authorization':CFG.cuToken}})
+      .then(r=>r.json()).then(d=>{
+        if(d.fields){
+          CFG.cuFieldMap={};
+          d.fields.forEach(f=>{
+            CFG.cuFieldMap[f.name.toLowerCase().trim()]={
+              id:f.id,type:f.type,
+              options:(f.type_config&&f.type_config.options)?f.type_config.options:[]
+            };
+          });
+          console.log('ClickUp custom fields loaded:',Object.keys(CFG.cuFieldMap));
+        }
+      }).catch(()=>{});
+    }
   }
 }
 initUI();
