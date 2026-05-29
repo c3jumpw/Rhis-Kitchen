@@ -282,8 +282,8 @@ textarea{resize:vertical;min-height:55px}
     <div class="int-title" style="color:var(--pu)"><i class="ti ti-checkbox" aria-hidden="true"></i> CLICKUP — DIRECT SYNC</div>
     <div class="help">Optional direct sync alongside Zapier. Get API Token from ClickUp → Settings → Apps. Get List ID from the URL of your Kitchen Orders list.</div>
     <div class="fg2">
-      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" placeholder="pk_xxxxx…" oninput="CFG.cuToken=this.value"></div>
-      <div class="fg"><label>KITCHEN ORDERS LIST ID</label><input id="cu-list" placeholder="901234567" oninput="CFG.cuListId=this.value"></div>
+      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" value="pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8" oninput="CFG.cuToken=this.value"></div>
+      <div class="fg"><label>MASTER ORDER LIST ID</label><input id="cu-list" value="901326954708" oninput="CFG.cuListId=this.value"></div>
     </div>
     <div class="row" style="margin-top:.375rem;gap:7px">
       <button class="btn bs2" style="border-color:var(--pu);color:var(--pu)" onclick="testCU()"><i class="ti ti-plug" aria-hidden="true"></i> Test Connection</button>
@@ -299,10 +299,10 @@ textarea{resize:vertical;min-height:55px}
   <div class="card">
     <div class="ct"><div class="ctl"><i class="ti ti-building-store" aria-hidden="true"></i> Business & Notifications</div></div>
     <div class="fg2">
-      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Rhi's Neighborhood Kitchen" oninput="CFG.bizName=this.value"></div>
+      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Rhi's Kitchen" oninput="CFG.bizName=this.value"></div>
       <div class="fg"><label>ADMIN PHONE (for Twilio alerts)</label><input id="adm-phone" placeholder="+14045550100" oninput="CFG.adminPhone=this.value"></div>
       <div class="fg"><label>ADMIN EMAIL (for SendGrid alerts)</label><input id="adm-email" placeholder="jeffrey@email.com" oninput="CFG.adminEmail=this.value"></div>
-      <div class="fg"><label>GITHUB PAGES URL</label><input id="gh-url" placeholder="yourusername.github.io/ree-kitchen" oninput="CFG.ghURL=this.value"></div>
+      <div class="fg"><label>GITHUB PAGES URL</label><input id="gh-url" value="c3jumpw.github.io/Rhis-Kitchen" oninput="CFG.ghURL=this.value"></div>
     </div>
   </div>
 
@@ -310,6 +310,43 @@ textarea{resize:vertical;min-height:55px}
     <div class="ct"><div class="ctl"><i class="ti ti-webhook" aria-hidden="true"></i> Additional Webhooks</div><button class="btn bs2" onclick="addWH()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button></div>
     <div class="help">Extra webhook endpoints beyond the 4 Zapier Zaps — for custom integrations, Stripe, Make, etc.</div>
     <div id="whlist"></div>
+  </div>
+
+  <div class="card" style="border-color:var(--gn);border-width:1px">
+    <div class="ct"><div class="ctl" style="color:var(--gn)"><i class="ti ti-credit-card" aria-hidden="true"></i> PAYMENT INTEGRATION</div><span class="badge" style="background:var(--gn2);color:var(--gn)">Coming soon</span></div>
+    <div style="font-size:12px;color:var(--mu);line-height:1.65;margin-bottom:.875rem">Payment will be handled through <strong style="color:var(--text)">Zapier</strong> — no payment keys are ever stored in this app or in the public GitHub repo. When an order is placed, Zapier receives the order data and can trigger a Stripe payment link, Cash App request, or Square invoice via the Zap 1 workflow.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:4px;color:var(--text)">Option A — Zapier + Stripe</div>
+        <div style="font-size:11px;color:var(--mu)">Zap 1 creates a Stripe Payment Link for the order total and sends it to the customer via Twilio SMS. Customer pays via link. Stripe confirms back to Zapier which updates order status to Confirmed.</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:4px;color:var(--text)">Option B — Public order form</div>
+        <div style="font-size:11px;color:var(--mu)">A separate customer-facing order page (hosted on GitHub Pages or Squarespace) with a Stripe checkout. On payment, a Zap fires to ClickUp + this OMS. Jeffrey and Rhi see the order appear automatically.</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:4px;color:var(--text)">Option C — Jeffrey's existing account</div>
+        <div style="font-size:11px;color:var(--mu)">If Jeffrey's business account (Cash App Business, Square, or Zelle) generates shareable payment links, Zap 1 can include that link in the order confirmation SMS. Simplest to activate.</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:.75rem">
+        <div style="font-size:11px;font-weight:500;margin-bottom:4px;color:var(--text)">When to activate</div>
+        <div style="font-size:11px;color:var(--mu)">Confirm Jeffrey's payment account type → set up Twilio + SendGrid → add a payment action to Zap 1. No changes to this app file needed — Zapier handles it all.</div>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>PAYMENT MODE (for when Zapier Zaps are live)</label>
+        <select id="pay-mode" onchange="CFG.paymentMode=this.value">
+          <option value="zapier" selected>Via Zapier (recommended)</option>
+          <option value="stripe">Stripe direct link</option>
+          <option value="existing">Jeffrey's existing account link</option>
+          <option value="manual">Manual / collect on pickup</option>
+        </select>
+      </div>
+      <div class="fg"><label>STRIPE PUBLIC KEY (optional — only for direct Stripe)</label>
+        <input id="stripe-key" placeholder="pk_live_…" oninput="CFG.stripePublicKey=this.value">
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--mu);margin-top:.375rem">⚠ Never paste your Stripe <em>secret</em> key here. Only the public key (starts with pk_) is safe in a browser. Secret keys belong in Zapier only.</div>
   </div>
 
   <div class="card">
@@ -380,7 +417,20 @@ textarea{resize:vertical;min-height:55px}
 
 <script>
 var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
-var CFG={zap1:'',zap2:'',zap3:'',zap4:'',sheetsCSV:'',cuToken:'',cuListId:'',statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},autoSync:true,bizName:"Chef Rhi's Neighborhood Kitchen",adminPhone:'',adminEmail:'',ghURL:'',pin:''};
+var CFG={
+  zap1:'',zap2:'',zap3:'',zap4:'',
+  sheetsCSV:'',
+  cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
+  cuListId:'901326954708',
+  statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},
+  autoSync:true,
+  bizName:"Chef Rhi's Kitchen",
+  adminPhone:'',adminEmail:'',
+  ghURL:'c3jumpw.github.io/Rhis-Kitchen',
+  sheetsId:'1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk',
+  stripePublicKey:'',paymentMode:'zapier',
+  pin:''
+};
 var APP={orders:[],menu:[],webhooks:[]};
 var LOG=[];
 var editMI=-1,viewOID=null,iqtys={};
@@ -694,6 +744,30 @@ document.getElementById('mo-order').addEventListener('click',function(e){if(e.ta
 
 initSample();renderDash();renderStatusMap();renderWH();
 var bc=document.getElementById('b-cut');if(!bc.value)bc.value=new Date(Date.now()+5*86400000).toISOString().split('T')[0];
+
+// Auto-populate all pre-baked settings into input fields on load
+function initUI(){
+  var fields={
+    'cu-token':CFG.cuToken,'cu-list':CFG.cuListId,
+    'bizname':CFG.bizName,'gh-url':CFG.ghURL,
+    'adm-phone':CFG.adminPhone,'adm-email':CFG.adminEmail,
+    'stripe-key':CFG.stripePublicKey
+  };
+  Object.entries(fields).forEach(([id,val])=>{var el=document.getElementById(id);if(el&&val)el.value=val});
+  document.getElementById('autosync').checked=CFG.autoSync;
+  // Auto-test ClickUp connection silently on load
+  if(CFG.cuToken){
+    fetch('https://api.clickup.com/api/v2/user',{headers:{'Authorization':CFG.cuToken}})
+    .then(r=>r.json()).then(d=>{
+      if(d.user){
+        document.getElementById('cu-dot').className='dot ok';
+        document.getElementById('cu-lbl').textContent=d.user.username;
+        document.getElementById('cu-status').textContent='Connected as '+d.user.username;
+      }
+    }).catch(()=>{});
+  }
+}
+initUI();
 </script>
 
 </body>
