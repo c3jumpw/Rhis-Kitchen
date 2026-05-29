@@ -257,10 +257,10 @@ textarea{resize:vertical;min-height:55px}
     <div class="int-title" style="color:var(--zp)"><i class="ti ti-bolt" aria-hidden="true"></i> ZAPIER — INTEGRATION HUB</div>
     <div class="help">Paste the webhook URL from each Zap below. All API keys (Twilio, SendGrid, ClickUp) live inside Zapier — never in this app.</div>
     <div class="fg2">
-      <div class="fg"><label>ZAP 1 — NEW ORDER WEBHOOK</label><input id="zap1" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap1=this.value"></div>
-      <div class="fg"><label>ZAP 2 — STATUS CHANGED WEBHOOK</label><input id="zap2" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap2=this.value"></div>
-      <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap3=this.value"></div>
-      <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" placeholder="Paste Zap 4 webhook or leave blank" oninput="CFG.zap4=this.value"></div>
+      <div class="fg"><label>ZAP 1 — NEW ORDER WEBHOOK</label><input id="zap1" value="https://hooks.zapier.com/hooks/catch/20594220/4btfeja/" oninput="CFG.zap1=this.value"></div>
+      <div class="fg"><label>ZAP 2 — STATUS CHANGED WEBHOOK</label><input id="zap2" value="https://hooks.zapier.com/hooks/catch/20594220/4btfna2/" oninput="CFG.zap2=this.value"></div>
+      <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" value="https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/" oninput="CFG.zap3=this.value"></div>
+      <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" value="https://hooks.zapier.com/hooks/catch/20594220/4btabe6/" oninput="CFG.zap4=this.value"></div>
     </div>
     <div style="font-size:11px;color:var(--mu);margin-top:.25rem"><b>Payload sent to Zapier Zap 1 (new order):</b></div>
     <div class="payload-box" id="payload-preview">{ "event": "order.new", "order_id": "abc123", "customer_name": "Natalie Johnson", "customer_phone": "+16785550101", "customer_email": "nat@email.com", "pickup_date": "2026-05-25", "items_text": "1× Oxtail Platter (Half Pan) · 1× Rice & Peas (Half Pan)", "total": "213.00", "payment_method": "Cash App", "payment_status": "Deposit Paid", "notes": "No spicy sides please", "admin_phone": "+14045550100", "admin_email": "jeffrey@email.com" }</div>
@@ -418,7 +418,10 @@ textarea{resize:vertical;min-height:55px}
 <script>
 var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
 var CFG={
-  zap1:'',zap2:'',zap3:'',zap4:'',
+  zap1:'https://hooks.zapier.com/hooks/catch/20594220/4btfeja/',
+  zap2:'https://hooks.zapier.com/hooks/catch/20594220/4btfna2/',
+  zap3:'https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/',
+  zap4:'https://hooks.zapier.com/hooks/catch/20594220/4btabe6/',
   sheetsCSV:'',
   cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
   cuListId:'901326954708',
@@ -751,7 +754,8 @@ function initUI(){
     'cu-token':CFG.cuToken,'cu-list':CFG.cuListId,
     'bizname':CFG.bizName,'gh-url':CFG.ghURL,
     'adm-phone':CFG.adminPhone,'adm-email':CFG.adminEmail,
-    'stripe-key':CFG.stripePublicKey
+    'stripe-key':CFG.stripePublicKey,
+    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4
   };
   Object.entries(fields).forEach(([id,val])=>{var el=document.getElementById(id);if(el&&val)el.value=val});
   document.getElementById('autosync').checked=CFG.autoSync;
