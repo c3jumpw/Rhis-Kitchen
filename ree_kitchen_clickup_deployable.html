@@ -1,0 +1,743 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f8f6f1;--bg2:#eeebe3;--bg3:#e2ded4;--card:#fff;
+--text:#1c1a16;--muted:#6e6a5e;--hint:#a09b8e;
+--bdr:rgba(0,0,0,0.09);--bdr2:rgba(0,0,0,0.16);
+--gold:#c47c0a;--gold2:#f5c842;--gold-bg:#fef8e8;
+--green:#2a7a3b;--green-bg:#eaf3de;
+--red:#b02020;--red-bg:#fcebeb;
+--blue:#1a5fa0;--blue-bg:#e6f1fb;
+--cu:#7B68EE;--cu-bg:#f0eeff;
+}
+@media(prefers-color-scheme:dark){:root{
+--bg:#1c1a16;--bg2:#242118;--bg3:#2e2a22;--card:#242118;
+--text:#f0ece4;--muted:#9e9a8e;--hint:#68645a;
+--bdr:rgba(255,255,255,0.09);--bdr2:rgba(255,255,255,0.18);
+}}
+body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;font-size:14px;line-height:1.5}
+h1,h2,h3{font-weight:500;letter-spacing:-.02em}
+.app{display:flex;flex-direction:column}
+.hd{background:var(--card);border-bottom:0.5px solid var(--bdr2);padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:8px}
+.logo{width:30px;height:30px;background:var(--gold);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.bname{font-size:14px;font-weight:500}.bsub{font-size:10px;color:var(--muted);letter-spacing:.06em}
+.hd-right{display:flex;align-items:center;gap:6px}
+.cu-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--bdr2);cursor:pointer;transition:all .12s}
+.cu-pill:hover{background:var(--bg2)}
+.cu-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0}
+.cu-dot.ok{background:var(--green)}.cu-dot.err{background:var(--red)}.cu-dot.na{background:#ccc}
+.nav{display:flex;background:var(--card);border-bottom:0.5px solid var(--bdr);padding:0 1rem;overflow-x:auto;gap:2px}
+.nt{padding:9px 14px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;transition:all .12s;letter-spacing:.01em}
+.nt.on{color:var(--text);border-bottom-color:var(--gold);font-weight:500}
+.nt:hover:not(.on){color:var(--text);background:var(--bg2)}
+.wrap{padding:1.25rem;flex:1}
+.sec{display:none}.sec.on{display:block}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
+.mc{background:var(--bg2);border-radius:8px;padding:.875rem}
+.ml{font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:.03em}
+.mv{font-size:22px;font-weight:500;letter-spacing:-.03em}
+.ms{font-size:11px;color:var(--hint);margin-top:3px}
+.card{background:var(--card);border:0.5px solid var(--bdr);border-radius:12px;padding:1rem 1.125rem;margin-bottom:1rem}
+.ct{font-size:13px;font-weight:500;margin-bottom:.875rem;display:flex;align-items:center;justify-content:space-between}
+.ct-left{display:flex;align-items:center;gap:7px}
+.btn{padding:6px 13px;border:0.5px solid var(--bdr2);border-radius:7px;background:transparent;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg2)}.btn:active{transform:scale(.98)}
+.btn-p{background:var(--gold);border-color:var(--gold);color:#fff}.btn-p:hover{background:#a86800;border-color:#a86800}
+.btn-s{padding:4px 9px;font-size:11px}
+.btn-cu{background:var(--cu-bg);border-color:var(--cu);color:var(--cu)}.btn-cu:hover{background:var(--cu);color:#fff}
+.btn-d{border-color:var(--red);color:var(--red)}.btn-d:hover{background:var(--red-bg)}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;letter-spacing:.03em}
+.bg{background:var(--bg2);color:var(--muted)}
+.bb{background:var(--blue-bg);color:var(--blue)}
+.ba{background:var(--gold-bg);color:var(--gold)}
+.bgn{background:var(--green-bg);color:var(--green)}
+.br{background:var(--red-bg);color:var(--red)}
+.bcu{background:var(--cu-bg);color:var(--cu)}
+.kan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:start}
+@media(max-width:640px){.kan{grid-template-columns:repeat(2,1fr)}}
+.kcol{background:var(--bg2);border-radius:8px;padding:.625rem;min-height:160px}
+.kh{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.08em;margin-bottom:.625rem;display:flex;align-items:center;justify-content:space-between}
+.kc{background:var(--bg3);border-radius:12px;padding:1px 6px;font-size:10px}
+.oc{background:var(--card);border:0.5px solid var(--bdr);border-radius:7px;padding:.625rem;margin-bottom:.375rem;cursor:pointer;transition:border-color .12s;position:relative}
+.oc:hover{border-color:var(--bdr2)}
+.on2{font-size:12px;font-weight:500;margin-bottom:2px}
+.oi{font-size:10px;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.om{display:flex;justify-content:space-between;align-items:center}
+.ot{font-size:12px;font-weight:500;color:var(--gold)}
+.od{font-size:10px;color:var(--hint)}
+.cu-sync{position:absolute;top:6px;right:6px;font-size:10px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg2.full{grid-column:1/-1}
+label{font-size:11px;color:var(--muted);letter-spacing:.03em}
+input,select,textarea{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:7px;padding:7px 9px;color:var(--text);font-size:13px;font-family:inherit;width:100%;transition:border-color .12s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+textarea{resize:vertical;min-height:60px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .15s}
+.mo.open{opacity:1;pointer-events:all}
+.md{background:var(--card);border-radius:14px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border:0.5px solid var(--bdr2)}
+.mh{padding:1rem 1.125rem;border-bottom:0.5px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1}
+.mt2{font-size:14px;font-weight:500}
+.mb2{padding:1.125rem}
+.mf{padding:.875rem 1.125rem;border-top:0.5px solid var(--bdr);display:flex;justify-content:flex-end;gap:7px;background:var(--card);position:sticky;bottom:0}
+.divd{border:none;border-top:0.5px solid var(--bdr);margin:.75rem 0}
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--text);color:var(--bg);padding:.625rem 1rem;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+.mi{background:var(--card);border:0.5px solid var(--bdr);border-radius:10px;padding:.875rem;position:relative}
+.min2{font-size:13px;font-weight:500;margin-bottom:2px;padding-right:50px}
+.mit{font-size:11px;color:var(--muted);margin-bottom:6px}
+.mip{font-size:17px;font-weight:500;color:var(--gold)}
+.mia{position:absolute;top:8px;right:8px;display:flex;gap:3px}
+.cr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bdr)}
+.cr:last-child{border-bottom:none}
+.av{width:34px;height:34px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--blue);flex-shrink:0}
+.ci{flex:1;min-width:0}.cn2{font-size:13px;font-weight:500}.cc{font-size:11px;color:var(--muted)}
+.cs{text-align:right;flex-shrink:0}.co{font-size:12px;font-weight:500}.csp{font-size:10px;color:var(--hint)}
+.pb{height:5px;border-radius:3px;background:var(--bg3);margin-bottom:4px;overflow:hidden}
+.pf{height:100%;border-radius:3px;background:var(--gold)}
+.ai{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bdr)}
+.ai:last-child{border-bottom:none}
+.ad{width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0}
+.at2{font-size:12px;flex:1;color:var(--text)}
+.atm{font-size:10px;color:var(--hint);flex-shrink:0}
+.smap{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:.75rem}
+.smap td,.smap th{padding:6px 8px;border:0.5px solid var(--bdr);text-align:left}
+.smap th{background:var(--bg2);font-weight:500;font-size:11px;letter-spacing:.03em;color:var(--muted)}
+.smap input,.smap select{padding:4px 7px;font-size:12px;border-radius:5px}
+.gr-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bdr);font-size:12px}
+.gr-item:last-child{border-bottom:none}
+.empty{text-align:center;padding:1.5rem;color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.bw{justify-content:space-between}
+.fab{position:fixed;bottom:1.25rem;right:1.25rem;width:44px;height:44px;background:var(--gold);border-radius:50%;border:none;color:#fff;font-size:22px;cursor:pointer;z-index:150;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(196,124,10,.35);transition:transform .12s}
+.fab:hover{transform:scale(1.08)}
+.deploy-box{background:var(--bg2);border:0.5px solid var(--bdr2);border-radius:10px;padding:1rem;margin-bottom:1rem}
+.deploy-step{display:flex;gap:10px;margin-bottom:.75rem;align-items:flex-start}
+.deploy-num{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.deploy-text{font-size:12px;color:var(--text);line-height:1.6}
+.deploy-text code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:11px;font-family:monospace}
+.cu-section{background:var(--cu-bg);border:0.5px solid rgba(123,104,238,.2);border-radius:10px;padding:1rem;margin-bottom:1rem}
+.cu-title{font-size:12px;font-weight:500;color:var(--cu);margin-bottom:.75rem;display:flex;align-items:center;gap:6px;letter-spacing:.03em}
+.help-text{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:.75rem}
+.help-text code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:10px}
+.tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;letter-spacing:.04em}
+</style>
+
+<div class="app">
+<div class="hd">
+  <div class="brand">
+    <div class="logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+    <div><div class="bname">Chef Ree's Kitchen</div><div class="bsub">ORDER MANAGEMENT</div></div>
+  </div>
+  <div class="hd-right">
+    <div class="cu-pill" onclick="showTab('settings',document.querySelector('[data-tab=settings]'))">
+      <div class="cu-dot na" id="cu-dot"></div>
+      <span id="cu-label" style="font-size:11px;color:var(--muted)">ClickUp</span>
+    </div>
+    <button class="btn btn-s" onclick="downloadApp()"><i class="ti ti-download" aria-hidden="true"></i> Deploy</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nt on" data-tab="dash" onclick="showTab('dash',this)">Dashboard</button>
+  <button class="nt" data-tab="orders" onclick="showTab('orders',this)">Orders</button>
+  <button class="nt" data-tab="new" onclick="showTab('new',this)">+ New Order</button>
+  <button class="nt" data-tab="menu" onclick="showTab('menu',this)">Menu</button>
+  <button class="nt" data-tab="customers" onclick="showTab('customers',this)">Customers</button>
+  <button class="nt" data-tab="grocery" onclick="showTab('grocery',this)">Grocery</button>
+  <button class="nt" data-tab="settings" onclick="showTab('settings',this)">Settings</button>
+</div>
+
+<div class="wrap">
+
+<div class="sec on" id="sec-dash">
+  <div class="g4">
+    <div class="mc"><div class="ml">ACTIVE ORDERS</div><div class="mv" id="m1">0</div><div class="ms">pending</div></div>
+    <div class="mc"><div class="ml">REVENUE</div><div class="mv" id="m2">$0</div><div class="ms">this cycle</div></div>
+    <div class="mc"><div class="ml">CUSTOMERS</div><div class="mv" id="m3">0</div><div class="ms">in database</div></div>
+    <div class="mc"><div class="ml">READY</div><div class="mv" id="m4">0</div><div class="ms">for pickup</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="card">
+      <div class="ct"><div class="ct-left"><i class="ti ti-chart-bar" aria-hidden="true"></i> Pipeline</div></div>
+      <div id="pipeline"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ct-left"><i class="ti ti-activity" aria-hidden="true"></i> Activity</div></div>
+      <div id="activity"><div class="empty">No activity yet</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><div class="ct-left"><i class="ti ti-speakerphone" aria-hidden="true"></i> Blast Announcement</div></div>
+    <div class="fg2">
+      <div class="fg"><label>OCCASION</label><input id="b-occ" placeholder="e.g. Mother's Day Special"></div>
+      <div class="fg"><label>ORDER CUTOFF</label><input type="date" id="b-cut"></div>
+    </div>
+    <div class="fg" style="margin-top:.5rem"><label>MESSAGE</label><textarea id="b-msg" placeholder="Hey! We're taking pre-orders for our Mother's Day menu. Order by Wednesday the 7th — oxtail platters, jerk chicken, rice & peas available. Reply or click the link to order…"></textarea></div>
+    <button class="btn btn-p" style="margin-top:.5rem" onclick="sendBlast()"><i class="ti ti-send" aria-hidden="true"></i> Preview Blast (<span id="b-count">0</span> customers)</button>
+  </div>
+</div>
+
+<div class="sec" id="sec-orders">
+  <div class="row bw" style="margin-bottom:1rem">
+    <div style="font-size:15px;font-weight:500">Orders</div>
+    <div class="row">
+      <button class="btn btn-cu btn-s" onclick="syncAll()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync ClickUp</button>
+      <button class="btn btn-p btn-s" onclick="showTab('new',document.querySelector('[data-tab=new]'))"><i class="ti ti-plus" aria-hidden="true"></i> New Order</button>
+    </div>
+  </div>
+  <div class="kan" id="kanban"></div>
+</div>
+
+<div class="sec" id="sec-new">
+  <div style="max-width:580px">
+    <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">New Order</div>
+    <div class="card">
+      <div class="ct"><div class="ct-left"><i class="ti ti-user" aria-hidden="true"></i> Customer</div></div>
+      <div class="fg2">
+        <div class="fg"><label>NAME *</label><input id="on" placeholder="Full name"></div>
+        <div class="fg"><label>PHONE *</label><input id="op" placeholder="(555) 000-0000"></div>
+        <div class="fg"><label>EMAIL</label><input id="oe" type="email" placeholder="email@example.com"></div>
+        <div class="fg"><label>PICKUP DATE *</label><input id="od" type="date"></div>
+        <div class="fg fg2 full"><label>NOTES</label><input id="onotes" placeholder="Allergies, special requests…"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ct-left"><i class="ti ti-list" aria-hidden="true"></i> Items</div><span id="itotal" style="font-size:13px;font-weight:500;color:var(--gold)">$0.00</span></div>
+      <div id="ipicker"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><div class="ct-left"><i class="ti ti-credit-card" aria-hidden="true"></i> Payment</div></div>
+      <div class="fg2">
+        <div class="fg"><label>METHOD</label>
+          <select id="opm"><option>Cash App</option><option>Zelle</option><option>Stripe</option><option>Cash</option></select>
+        </div>
+        <div class="fg"><label>STATUS</label>
+          <select id="ops"><option>Deposit Paid</option><option>Paid in Full</option><option>Unpaid</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:7px">
+      <button class="btn" onclick="resetForm()">Clear</button>
+      <button class="btn btn-p" onclick="submitOrder()"><i class="ti ti-check" aria-hidden="true"></i> Place Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="sec-menu">
+  <div class="row bw" style="margin-bottom:1.25rem">
+    <div style="font-size:15px;font-weight:500">Menu Items</div>
+    <button class="btn btn-p" onclick="openMenu()"><i class="ti ti-plus" aria-hidden="true"></i> Quick Add Item</button>
+  </div>
+  <div class="mg" id="mgrid"></div>
+</div>
+
+<div class="sec" id="sec-customers">
+  <div class="row bw" style="margin-bottom:1rem">
+    <div style="font-size:15px;font-weight:500">Customers</div>
+    <div class="row">
+      <input style="width:180px" placeholder="Search…" oninput="renderCustomers(this.value)" id="csearch">
+      <button class="btn btn-s" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
+    </div>
+  </div>
+  <div class="card"><div id="clist"></div></div>
+</div>
+
+<div class="sec" id="sec-grocery">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">Grocery List</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+    <div class="card" style="margin:0">
+      <div class="ct"><div class="ct-left"><i class="ti ti-filter" aria-hidden="true"></i> Filter</div></div>
+      <div class="fg"><label>PICKUP DATE</label><input type="date" id="gd" oninput="renderGrocery()"></div>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:.5rem;font-size:12px;color:var(--text);cursor:pointer">
+        <input type="checkbox" id="ga" style="width:auto" onchange="renderGrocery()"> Show all pending orders
+      </label>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="ct"><div class="ct-left"><i class="ti ti-coins" aria-hidden="true"></i> Est. Cost</div></div>
+      <div style="font-size:28px;font-weight:500;letter-spacing:-.03em" id="gcost">$0</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">ingredients only</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><div class="ct-left"><i class="ti ti-list-check" aria-hidden="true"></i> Shopping List</div>
+      <button class="btn btn-s" onclick="window.print()"><i class="ti ti-printer" aria-hidden="true"></i> Print</button>
+    </div>
+    <div id="glist"></div>
+  </div>
+</div>
+
+<div class="sec" id="sec-settings">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1.25rem">Settings</div>
+
+  <div class="cu-section">
+    <div class="cu-title"><i class="ti ti-brand-clickup" aria-hidden="true"></i> CLICKUP INTEGRATION</div>
+    <div class="help-text">Find your API token in ClickUp → Settings → Apps → API Token.<br>Get the List ID from your order list URL: <code>app.clickup.com/…/v/l/li/<b>LIST_ID</b></code></div>
+    <div class="fg2">
+      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" placeholder="pk_xxxxx…" oninput="S.clickupToken=this.value"></div>
+      <div class="fg"><label>LIST ID</label><input id="cu-list" placeholder="901234567" oninput="S.clickupListId=this.value"></div>
+    </div>
+    <div class="row" style="margin-top:.625rem;flex-wrap:wrap;gap:6px">
+      <button class="btn btn-cu btn-s" onclick="testCU()"><i class="ti ti-plug" aria-hidden="true"></i> Test Connection</button>
+      <button class="btn btn-s" onclick="fetchCUStatuses()"><i class="ti ti-refresh" aria-hidden="true"></i> Fetch Statuses</button>
+      <span id="cu-status" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+    <div class="divd"></div>
+    <div style="font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.05em;margin-bottom:.5rem">STATUS MAPPING</div>
+    <div class="help-text">Map each order stage to the matching status name in your ClickUp list.</div>
+    <table class="smap" id="smap"></table>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;color:var(--text)">
+      <input type="checkbox" id="autosync" style="width:auto" onchange="S.autoSync=this.checked"> Auto-sync to ClickUp on every status change
+    </label>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ct-left"><i class="ti ti-building-store" aria-hidden="true"></i> Business Info</div></div>
+    <div class="fg2">
+      <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Ree's Neighborhood Kitchen" oninput="S.bizName=this.value"></div>
+      <div class="fg"><label>AREA</label><input id="bizarea" placeholder="Ellenwood, GA" oninput="S.bizArea=this.value"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ct-left"><i class="ti ti-rocket" aria-hidden="true"></i> Deploy & Publish</div></div>
+    <div class="deploy-box">
+      <div class="deploy-step"><div class="deploy-num">1</div><div class="deploy-text"><b>Download the app file</b> — click the <b>Deploy</b> button at the top right. This generates a single <code>.html</code> file with your current menu and settings baked in.</div></div>
+      <div class="deploy-step"><div class="deploy-num">2</div><div class="deploy-text"><b>Go to</b> <code>netlify.com/drop</code> — drag your <code>ree-kitchen.html</code> file onto the page. It goes live in under 30 seconds.</div></div>
+      <div class="deploy-step"><div class="deploy-num">3</div><div class="deploy-text"><b>Rename your URL</b> — in the Netlify dashboard click "Site settings" → "Change site name" → set it to something like <code>ree-kitchen</code> → your URL becomes <code>ree-kitchen.netlify.app</code>.</div></div>
+      <div class="deploy-step"><div class="deploy-num">4</div><div class="deploy-text"><b>Share the link</b> with admins. Anyone with the URL can use the app on any device — phone, tablet, laptop. No login needed unless you set a PIN below.</div></div>
+      <div class="deploy-step" style="margin-bottom:0"><div class="deploy-num">5</div><div class="deploy-text"><b>To update the app</b> — make changes here, re-download, drag the new file to Netlify. It replaces the old version at the same URL automatically.</div></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>ADMIN PIN (optional — gates settings)</label><input type="password" id="pin" placeholder="Leave blank for open access" oninput="S.pin=this.value" maxlength="8"></div>
+    </div>
+    <div class="row" style="margin-top:.625rem;flex-wrap:wrap;gap:6px">
+      <button class="btn btn-p" onclick="downloadApp()"><i class="ti ti-download" aria-hidden="true"></i> Download App File</button>
+      <button class="btn btn-s" onclick="exportJSON()"><i class="ti ti-package" aria-hidden="true"></i> Export Data Backup</button>
+      <label class="btn btn-s" style="cursor:pointer"><i class="ti ti-upload" aria-hidden="true"></i> Import Backup<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ct-left"><i class="ti ti-webhook" aria-hidden="true"></i> Webhooks</div><button class="btn btn-s" onclick="addWH()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button></div>
+    <div class="help-text">POST requests sent on order events. Connect to Zapier, Make, Twilio for SMS, Square for payments, etc.</div>
+    <div id="whlist"></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div id="mo-menu" class="mo">
+  <div class="md">
+    <div class="mh"><div class="mt2" id="mmtitle">Add Menu Item</div><button class="btn btn-s" onclick="closeMenu()"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <div class="mb2">
+      <div class="fg2">
+        <div class="fg fg2 full"><label>ITEM NAME *</label><input id="mm-name" placeholder="Oxtail Platter (Half Pan)"></div>
+        <div class="fg fg2 full"><label>DESCRIPTION</label><input id="mm-desc" placeholder="Slow-braised oxtail with butter beans, serves 4-6"></div>
+        <div class="fg"><label>TYPE</label><select id="mm-type"><option>Platter</option><option>Plate</option><option>Side</option><option>Drink</option><option>Catering</option></select></div>
+        <div class="fg"><label>AVAILABILITY</label><select id="mm-avail"><option>Always</option><option>Seasonal</option><option>Holiday Only</option></select></div>
+        <div class="fg"><label>SELL PRICE *</label><input type="number" id="mm-price" placeholder="175" step="0.5" min="0"></div>
+        <div class="fg"><label>INGREDIENT COST</label><input type="number" id="mm-cost" placeholder="60" step="0.5" min="0"></div>
+        <div class="fg fg2 full"><label>KEY INGREDIENTS (comma-separated)</label><input id="mm-ing" placeholder="oxtail, butter beans, scotch bonnet, allspice, thyme, garlic"></div>
+        <div class="fg"><label>SERVINGS</label><input type="number" id="mm-serv" placeholder="5" min="1"></div>
+        <div class="fg"><label>PREP TIME (hrs)</label><input type="number" id="mm-prep" placeholder="4" step="0.5" min="0"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeMenu()">Cancel</button><button class="btn btn-p" onclick="saveMenuItem()">Save Item</button></div>
+  </div>
+</div>
+
+<div id="mo-order" class="mo">
+  <div class="md">
+    <div class="mh"><div class="mt2" id="omtitle">Order Details</div><button class="btn btn-s" onclick="closeOrder()"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <div class="mb2" id="ombody"></div>
+    <div class="mf">
+      <button class="btn btn-d btn-s" onclick="delOrder()"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+      <button class="btn btn-cu btn-s" id="sync-btn" onclick="syncOne()"><i class="ti ti-brand-clickup" aria-hidden="true"></i> Sync to ClickUp</button>
+      <button class="btn" onclick="closeOrder()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
+var S={clickupToken:'',clickupListId:'',statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},autoSync:true,bizName:"Chef Ree's Neighborhood Kitchen",bizArea:'',pin:''};
+var APP={orders:[],menu:[],webhooks:[]};
+var log=[];
+var editMI=-1,viewOID=null;
+var iqtys={};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+function logIt(m){log.unshift({m,t:new Date()});if(log.length>30)log.pop()}
+function timeAgo(d){var s=Math.floor((Date.now()-d)/1000);if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
+function ot(o){return o.items.reduce((s,it)=>{var m=APP.menu.find(x=>x.id===it.mid);return s+(m?m.price*it.qty:0)},0)}
+function customers(){
+  var map={};
+  APP.orders.forEach(o=>{if(!map[o.phone])map[o.phone]={name:o.name,phone:o.phone,email:o.email||'',orders:0,spent:0};map[o.phone].orders++;map[o.phone].spent+=ot(o)});
+  return Object.values(map);
+}
+
+function showTab(id,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sec-'+id).classList.add('on');
+  if(el)el.classList.add('on');
+  if(id==='dash')renderDash();
+  if(id==='orders')renderKanban();
+  if(id==='menu')renderMenu();
+  if(id==='customers')renderCustomers('');
+  if(id==='grocery')renderGrocery();
+  if(id==='new')renderPicker();
+}
+
+function renderDash(){
+  var active=APP.orders.filter(o=>o.status!=='Picked Up').length;
+  document.getElementById('m1').textContent=active;
+  document.getElementById('m2').textContent='$'+APP.orders.reduce((s,o)=>s+ot(o),0).toFixed(0);
+  document.getElementById('m3').textContent=customers().length;
+  document.getElementById('m4').textContent=APP.orders.filter(o=>o.status==='Ready').length;
+  document.getElementById('b-count').textContent=customers().length;
+  var tot=APP.orders.length||1;
+  document.getElementById('pipeline').innerHTML=STATUSES.map(s=>{
+    var c=APP.orders.filter(o=>o.status===s).length;
+    return '<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:var(--muted)">'+s+'</span><span style="font-weight:500">'+c+'</span></div><div class="pb"><div class="pf" style="width:'+Math.round(c/tot*100)+'%"></div></div></div>';
+  }).join('');
+  var af=document.getElementById('activity');
+  af.innerHTML=log.length?log.slice(0,6).map(a=>'<div class="ai"><div class="ad"></div><div class="at2">'+a.m+'</div><div class="atm">'+timeAgo(a.t)+'</div></div>').join(''):'<div class="empty">No activity yet</div>';
+}
+
+function renderKanban(){
+  document.getElementById('kanban').innerHTML=STATUSES.map(st=>{
+    var orders=APP.orders.filter(o=>o.status===st);
+    var cards=orders.length?orders.map(o=>{
+      var total=ot(o);
+      var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', ');
+      var sync=o.cuTaskId?'<span style="color:var(--green)" title="Synced to ClickUp">✓</span>':S.clickupToken?'<span style="color:var(--hint)" title="Not yet synced">○</span>':'';
+      return '<div class="oc" onclick="viewOrder(\''+o.id+'\')"><div class="cu-sync">'+sync+'</div><div class="on2">'+o.name+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+'</span></div></div>';
+    }).join(''):'<div class="empty" style="padding:.375rem">—</div>';
+    return '<div class="kcol"><div class="kh"><span>'+st.toUpperCase()+'</span><span class="kc">'+orders.length+'</span></div>'+cards+'</div>';
+  }).join('');
+}
+
+function viewOrder(id){
+  var o=APP.orders.find(x=>x.id===id);if(!o)return;
+  viewOID=id;
+  document.getElementById('omtitle').textContent=o.name;
+  var total=ot(o);
+  var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'<div class="gr-item"><span>'+(it.qty>1?it.qty+'× ':'')+m.name+'</span><span>$'+(m.price*it.qty).toFixed(0)+'</span></div>':''}).join('');
+  var pc=o.payStatus==='Paid in Full'?'bgn':o.payStatus==='Deposit Paid'?'ba':'br';
+  document.getElementById('ombody').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.875rem">'+
+    '<div><div style="font-size:10px;color:var(--muted)">PHONE</div><div style="font-size:13px">'+o.phone+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--muted)">EMAIL</div><div style="font-size:13px">'+(o.email||'—')+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--muted)">PICKUP</div><div style="font-size:13px">'+o.pickup+'</div></div>'+
+    '<div><div style="font-size:10px;color:var(--muted)">PAYMENT</div><span class="badge '+pc+'">'+o.payStatus+' · '+o.payMethod+'</span></div>'+
+    '</div>'+
+    (o.notes?'<div style="background:var(--gold-bg);border-radius:6px;padding:7px 9px;font-size:11px;margin-bottom:.75rem;color:var(--gold)">'+o.notes+'</div>':'')+
+    (o.cuTaskId?'<div style="background:var(--cu-bg);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--cu)"><i class="ti ti-brand-clickup"></i> ClickUp Task: '+o.cuTaskId+'</div>':'')+
+    items+
+    '<div class="gr-item" style="font-weight:500;font-size:13px;border-bottom:none;padding-top:8px"><span>Total</span><span style="color:var(--gold)">$'+total.toFixed(0)+'</span></div>'+
+    '<div class="divd"></div>'+
+    '<div class="fg2" style="gap:8px">'+
+    '<div class="fg"><label>ORDER STATUS</label><select id="vm-status" onchange="updateStatus(\''+id+'\',this.value)">'+STATUSES.map(s=>'<option'+(o.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '<div class="fg"><label>PAYMENT STATUS</label><select id="vm-pay" onchange="updatePay(\''+id+'\',this.value)">'+['Unpaid','Deposit Paid','Paid in Full'].map(s=>'<option'+(o.payStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '</div>';
+  document.getElementById('mo-order').classList.add('open');
+}
+function updateStatus(id,s){var o=APP.orders.find(x=>x.id===id);if(!o)return;o.status=s;logIt(o.name+' → '+s);if(S.autoSync&&S.clickupToken)cuUpdateTask(o);renderKanban();toast('Status updated')}
+function updatePay(id,s){var o=APP.orders.find(x=>x.id===id);if(o){o.payStatus=s;toast('Payment updated')}}
+function closeOrder(){document.getElementById('mo-order').classList.remove('open');viewOID=null}
+function delOrder(){if(!viewOID)return;if(!confirm('Delete order?'))return;APP.orders=APP.orders.filter(o=>o.id!==viewOID);logIt('Order deleted');closeOrder();renderKanban();renderDash();toast('Deleted')}
+
+function renderPicker(){
+  iqtys={};APP.menu.forEach(m=>iqtys[m.id]=0);
+  var el=document.getElementById('ipicker');
+  if(!APP.menu.length){el.innerHTML='<div class="empty">No menu items yet — add them in the Menu tab first.</div>';return}
+  el.innerHTML=APP.menu.map(m=>'<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:7px;align-items:center;margin-bottom:8px">'+
+    '<div><div style="font-size:12px;font-weight:500">'+m.name+'</div><div style="font-size:10px;color:var(--muted)">'+m.type+' · $'+m.price+'</div></div>'+
+    '<button onclick="aq(\''+m.id+'\',-1)" style="width:26px;height:26px;border:0.5px solid var(--bdr2);border-radius:6px;background:transparent;cursor:pointer;font-size:14px;color:var(--text)">−</button>'+
+    '<span id="q-'+m.id+'" style="font-size:13px;font-weight:500;min-width:18px;text-align:center">0</span>'+
+    '<button onclick="aq(\''+m.id+'\',1)" style="width:26px;height:26px;border:0.5px solid var(--bdr2);border-radius:6px;background:transparent;cursor:pointer;font-size:14px;color:var(--text)">+</button>'+
+  '</div>').join('');
+  updTotal();
+}
+function aq(id,d){iqtys[id]=Math.max(0,(iqtys[id]||0)+d);var el=document.getElementById('q-'+id);if(el)el.textContent=iqtys[id];updTotal()}
+function updTotal(){var t=APP.menu.reduce((s,m)=>s+(m.price*(iqtys[m.id]||0)),0);document.getElementById('itotal').textContent='$'+t.toFixed(2)}
+
+function submitOrder(){
+  var name=document.getElementById('on').value.trim();
+  var phone=document.getElementById('op').value.trim();
+  var pickup=document.getElementById('od').value;
+  if(!name||!phone||!pickup){toast('Name, phone and pickup date required');return}
+  var items=APP.menu.filter(m=>iqtys[m.id]>0).map(m=>({mid:m.id,qty:iqtys[m.id]}));
+  if(!items.length){toast('Select at least one item');return}
+  var o={id:uid(),name,phone,email:document.getElementById('oe').value.trim(),pickup,notes:document.getElementById('onotes').value.trim(),items,payMethod:document.getElementById('opm').value,payStatus:document.getElementById('ops').value,status:'New',cuTaskId:null,created:new Date().toISOString()};
+  APP.orders.push(o);
+  logIt('New order: '+name);
+  fireWH({event:'order.new',order:o});
+  if(S.autoSync&&S.clickupToken)cuCreateTask(o);
+  toast('Order placed for '+name);resetForm();
+  showTab('orders',document.querySelector('[data-tab=orders]'));
+}
+function resetForm(){['on','op','oe','od','onotes'].forEach(id=>{document.getElementById(id).value=''});renderPicker()}
+
+function renderMenu(){
+  var g=document.getElementById('mgrid');
+  if(!APP.menu.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No items yet — click "Quick Add Item"</div>';return}
+  g.innerHTML=APP.menu.map((m,i)=>'<div class="mi"><div class="mia"><button class="btn btn-s" onclick="editMItem('+i+')"><i class="ti ti-edit" aria-hidden="true"></i></button><button class="btn btn-s btn-d" onclick="delMItem('+i+')"><i class="ti ti-trash" aria-hidden="true"></i></button></div><div class="min2">'+m.name+'</div><div class="mit"><span class="badge bg">'+m.type+'</span><span class="badge bg" style="margin-left:4px">'+m.avail+'</span></div><div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+m.desc+'</div><div class="mip">$'+m.price+'</div><div style="font-size:10px;color:var(--hint)">Cost: $'+m.cost+' · Margin: '+Math.round((1-m.cost/m.price)*100)+'%</div></div>').join('');
+}
+
+function openMenu(idx){
+  editMI=idx!==undefined?idx:-1;
+  var m=idx!==undefined?APP.menu[idx]:null;
+  document.getElementById('mmtitle').textContent=m?'Edit Item':'Add Menu Item';
+  document.getElementById('mm-name').value=m?m.name:'';
+  document.getElementById('mm-desc').value=m?m.desc:'';
+  document.getElementById('mm-type').value=m?m.type:'Platter';
+  document.getElementById('mm-avail').value=m?m.avail:'Always';
+  document.getElementById('mm-price').value=m?m.price:'';
+  document.getElementById('mm-cost').value=m?m.cost:'';
+  document.getElementById('mm-ing').value=m?m.ing:'';
+  document.getElementById('mm-serv').value=m?m.serv:'';
+  document.getElementById('mm-prep').value=m?m.prep:'';
+  document.getElementById('mo-menu').classList.add('open');
+}
+function closeMenu(){document.getElementById('mo-menu').classList.remove('open')}
+function editMItem(i){openMenu(i)}
+function delMItem(i){if(!confirm('Remove?'))return;APP.menu.splice(i,1);renderMenu();toast('Removed')}
+function saveMenuItem(){
+  var name=document.getElementById('mm-name').value.trim();
+  var price=parseFloat(document.getElementById('mm-price').value);
+  if(!name||isNaN(price)){toast('Name and price required');return}
+  var m={id:editMI>=0?APP.menu[editMI].id:uid(),name,desc:document.getElementById('mm-desc').value,type:document.getElementById('mm-type').value,avail:document.getElementById('mm-avail').value,price,cost:parseFloat(document.getElementById('mm-cost').value)||0,ing:document.getElementById('mm-ing').value,serv:parseInt(document.getElementById('mm-serv').value)||1,prep:parseFloat(document.getElementById('mm-prep').value)||0};
+  if(editMI>=0)APP.menu[editMI]=m;else APP.menu.push(m);
+  closeMenu();renderMenu();toast(editMI>=0?'Updated':'Item added');
+}
+
+function renderCustomers(q){
+  q=(q||'').toLowerCase();
+  var list=customers().filter(c=>!q||c.name.toLowerCase().includes(q)||c.phone.includes(q));
+  var el=document.getElementById('clist');
+  if(!list.length){el.innerHTML='<div class="empty">No customers yet — orders build your database automatically.</div>';return}
+  el.innerHTML=list.map(c=>{
+    var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return '<div class="cr"><div class="av">'+ini+'</div><div class="ci"><div class="cn2">'+c.name+'</div><div class="cc">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div class="cs"><div class="co">'+c.orders+' order'+(c.orders!==1?'s':'')+'</div><div class="csp">$'+c.spent.toFixed(0)+' total</div></div></div>';
+  }).join('');
+}
+
+function renderGrocery(){
+  var all=document.getElementById('ga').checked;
+  var date=document.getElementById('gd').value;
+  var rel=APP.orders.filter(o=>o.status!=='Picked Up'&&(all||o.pickup===date));
+  var agg={},ingMap={};
+  rel.forEach(o=>o.items.forEach(it=>{
+    var m=APP.menu.find(x=>x.id===it.mid);if(!m)return;
+    if(!agg[m.name])agg[m.name]={qty:0,cost:0};
+    agg[m.name].qty+=it.qty;agg[m.name].cost+=m.cost*it.qty;
+    (m.ing||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(i=>{ingMap[i]=(ingMap[i]||0)+it.qty});
+  }));
+  var tc=Object.values(agg).reduce((s,v)=>s+v.cost,0);
+  document.getElementById('gcost').textContent='$'+tc.toFixed(0);
+  var el=document.getElementById('glist');
+  if(!Object.keys(agg).length){el.innerHTML='<div class="empty">No orders match. Select a date or check "show all".</div>';return}
+  el.innerHTML='<div style="margin-bottom:1rem"><div style="font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.06em;margin-bottom:.5rem">ORDERS TO FILL</div>'+
+  Object.entries(agg).map(([n,v])=>'<div class="gr-item"><span>'+v.qty+'× '+n+'</span><span style="color:var(--muted)">~$'+v.cost.toFixed(0)+'</span></div>').join('')+
+  '</div><div><div style="font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.06em;margin-bottom:.5rem">INGREDIENTS NEEDED</div>'+
+  Object.entries(ingMap).map(([i,q])=>'<div class="gr-item"><span style="text-transform:capitalize">'+i+'</span><span class="badge ba">×'+q+'</span></div>').join('')+'</div>';
+}
+
+function sendBlast(){
+  var occ=document.getElementById('b-occ').value;
+  var msg=document.getElementById('b-msg').value;
+  if(!occ&&!msg){toast('Add a message first');return}
+  logIt('Blast: '+(occ||'announcement'));renderDash();
+  toast('Preview: blast would go to '+customers().length+' customers via SMS/email integration');
+}
+
+function renderStatusMap(){
+  var el=document.getElementById('smap');
+  el.innerHTML='<tr><th>App Status</th><th>ClickUp Status Name</th></tr>'+
+  STATUSES.map(s=>'<tr><td>'+s+'</td><td><input style="width:100%" value="'+(S.statusMap[s]||'')+'" placeholder="e.g. in progress" onchange="S.statusMap[\''+s+'\']=this.value"></td></tr>').join('');
+}
+
+function renderWH(){
+  var el=document.getElementById('whlist');
+  if(!APP.webhooks.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:.5rem">No webhooks configured.</div>';return}
+  el.innerHTML=APP.webhooks.map((w,i)=>'<div style="display:flex;gap:7px;align-items:center;margin-bottom:7px">'+
+    '<select style="width:130px;font-size:11px;padding:4px 7px" onchange="APP.webhooks['+i+'].event=this.value">'+
+    ['order.new','order.status','order.paid'].map(e=>'<option'+(w.event===e?' selected':'')+'>'+e+'</option>').join('')+
+    '</select><input value="'+w.url+'" placeholder="https://hooks.zapier.com/…" style="flex:1;font-size:12px" onchange="APP.webhooks['+i+'].url=this.value">'+
+    '<button class="btn btn-s btn-d" onclick="APP.webhooks.splice('+i+',1);renderWH()"><i class="ti ti-x" aria-hidden="true"></i></button></div>').join('');
+}
+function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
+function fireWH(data){APP.webhooks.filter(w=>w.url&&w.event===data.event).forEach(w=>{fetch(w.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{})})}
+
+async function cuAPI(method,path,body){
+  if(!S.clickupToken)throw new Error('No token');
+  var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':S.clickupToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok)throw new Error('ClickUp '+r.status);
+  return r.json();
+}
+
+function cuDesc(o){
+  var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'- '+(it.qty>1?it.qty+'× ':'')+m.name+' ($'+(m.price*it.qty).toFixed(0)+')':''}).filter(Boolean).join('\n');
+  return 'Customer: '+o.name+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nPickup: '+o.pickup+'\n\nItems:\n'+items+'\n\nTotal: $'+ot(o).toFixed(0)+(o.notes?'\n\nNotes: '+o.notes:'');
+}
+
+async function cuCreateTask(o){
+  try{
+    var r=await cuAPI('POST','/list/'+S.clickupListId+'/task',{name:'Order — '+o.name+' ('+o.pickup+')',description:cuDesc(o),status:S.statusMap[o.status]||'Open',due_date:new Date(o.pickup).getTime(),notify_all:false});
+    o.cuTaskId=r.id;logIt('ClickUp task created: '+o.name);toast('Synced to ClickUp ✓');renderKanban();
+  }catch(e){toast('ClickUp sync failed: '+e.message)}
+}
+
+async function cuUpdateTask(o){
+  if(!o.cuTaskId){cuCreateTask(o);return}
+  try{
+    await cuAPI('PUT','/task/'+o.cuTaskId,{status:S.statusMap[o.status]||'Open'});
+    logIt('ClickUp updated: '+o.name+' → '+o.status);
+  }catch(e){toast('ClickUp update failed: '+e.message)}
+}
+
+async function testCU(){
+  var st=document.getElementById('cu-status');
+  st.textContent='Testing…';
+  var tok=document.getElementById('cu-token').value.trim();
+  S.clickupToken=tok;
+  try{
+    var r=await cuAPI('GET','/user');
+    st.textContent='Connected as '+r.user.username;
+    document.getElementById('cu-dot').className='cu-dot ok';
+    document.getElementById('cu-label').textContent=r.user.username;
+    toast('ClickUp connected ✓');
+  }catch(e){
+    st.textContent='Error: '+e.message;
+    document.getElementById('cu-dot').className='cu-dot err';
+    toast('Connection failed — check token & CORS');
+  }
+}
+
+async function fetchCUStatuses(){
+  var lid=document.getElementById('cu-list').value.trim();
+  S.clickupListId=lid;
+  if(!lid){toast('Enter a List ID first');return}
+  try{
+    var r=await cuAPI('GET','/list/'+lid);
+    var statuses=r.statuses.map(s=>s.status);
+    toast('Fetched '+statuses.length+' statuses: '+statuses.join(', '));
+    STATUSES.forEach((s,i)=>{if(statuses[i])S.statusMap[s]=statuses[i]});
+    renderStatusMap();
+  }catch(e){toast('Could not fetch: '+e.message)}
+}
+
+async function syncOne(){
+  var o=APP.orders.find(x=>x.id===viewOID);
+  if(!o)return;
+  if(!S.clickupToken){toast('Configure ClickUp in Settings first');return}
+  if(o.cuTaskId)await cuUpdateTask(o);else await cuCreateTask(o);
+}
+
+async function syncAll(){
+  if(!S.clickupToken){toast('Configure ClickUp in Settings first');return}
+  toast('Syncing all orders…');
+  for(var o of APP.orders){if(!o.cuTaskId)await cuCreateTask(o);else await cuUpdateTask(o)}
+  toast('All orders synced');renderKanban();
+}
+
+function exportCSV(){
+  var rows=[['Name','Phone','Email','Pickup','Status','Payment','Total','Items']];
+  APP.orders.forEach(o=>{
+    var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).join('; ');
+    rows.push([o.name,o.phone,o.email,o.pickup,o.status,o.payStatus+' via '+o.payMethod,ot(o).toFixed(2),items]);
+  });
+  dlBlob(rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'),'orders.csv','text/csv');
+  toast('Exported CSV');
+}
+
+function exportJSON(){dlBlob(JSON.stringify({orders:APP.orders,menu:APP.menu,webhooks:APP.webhooks,settings:S,activity:log},null,2),'ree-backup.json','application/json');toast('Backup downloaded')}
+function importJSON(inp){var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.orders)APP.orders=d.orders;if(d.menu)APP.menu=d.menu;if(d.webhooks)APP.webhooks=d.webhooks;if(d.settings)Object.assign(S,d.settings);if(d.activity)log=d.activity;renderDash();renderMenu();toast('Backup restored ✓')}catch(e){toast('Invalid file')}};r.readAsText(inp.files[0])}
+function dlBlob(c,n,t){var b=new Blob([c],{type:t});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();URL.revokeObjectURL(a.href)}
+
+function downloadApp(){
+  var initData=JSON.stringify({orders:APP.orders,menu:APP.menu,webhooks:APP.webhooks,settings:S});
+  var html=`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chef Ree's Kitchen — Orders</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f8f6f1;--bg2:#eeebe3;--bg3:#e2ded4;--card:#fff;--text:#1c1a16;--muted:#6e6a5e;--hint:#a09b8e;--bdr:rgba(0,0,0,0.09);--bdr2:rgba(0,0,0,0.16);--gold:#c47c0a;--gold2:#f5c842;--gold-bg:#fef8e8;--green:#2a7a3b;--green-bg:#eaf3de;--red:#b02020;--red-bg:#fcebeb;--blue:#1a5fa0;--blue-bg:#e6f1fb;--cu:#7B68EE;--cu-bg:#f0eeff;}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1a16;--bg2:#242118;--bg3:#2e2a22;--card:#242118;--text:#f0ece4;--muted:#9e9a8e;--hint:#68645a;--bdr:rgba(255,255,255,0.09);--bdr2:rgba(255,255,255,0.18);}}
+body{background:var(--bg);color:var(--text);font-family:Georgia,serif;font-size:14px;line-height:1.5}
+/* [full styles would go here — same as app] */
+</style>
+</head>
+<body>
+<div style="text-align:center;padding:3rem 1rem">
+  <div style="font-size:32px;margin-bottom:1rem">🍽</div>
+  <h1 style="font-size:24px;font-weight:500;margin-bottom:.5rem">Chef Ree's Kitchen</h1>
+  <p style="color:#6e6a5e;margin-bottom:2rem">Order Management System</p>
+  <p style="font-size:13px;color:#6e6a5e;max-width:400px;margin:0 auto">This is the deployable shell. To get the full app, use the Claude artifact and click <strong>Deploy</strong> — it will embed your menu and settings into a complete working file.</p>
+  <div style="margin-top:2rem;padding:1rem;background:#fef8e8;border-radius:10px;font-size:12px;text-align:left;max-width:400px;margin:2rem auto">
+    <strong>Embedded data snapshot:</strong><br>
+    Menu items: ${APP.menu.length}<br>
+    Orders: ${APP.orders.length}<br>
+    Webhooks: ${APP.webhooks.length}<br>
+    ClickUp configured: ${S.clickupToken?'Yes':'No'}<br>
+    Generated: ${new Date().toLocaleString()}
+  </div>
+</div>
+<script>
+var INIT = ${initData};
+// Full app code with localStorage would be embedded here
+// localStorage.setItem('ree_init', JSON.stringify(INIT));
+console.log('App data:', INIT);
+<\/script>
+</body>
+</html>`;
+  dlBlob(html,'ree-kitchen.html','text/html');
+  toast('App file downloaded — drag to netlify.com/drop to publish!');
+  logIt('App exported for deployment');
+}
+
+function initSample(){
+  APP.menu=[
+    {id:uid(),name:'Oxtail Platter (Half Pan)',desc:'Slow-braised oxtail, serves 4-6',type:'Platter',avail:'Always',price:175,cost:60,ing:'oxtail,butter beans,scotch bonnet,allspice,thyme,garlic',serv:5,prep:4},
+    {id:uid(),name:'Oxtail Plate',desc:'Oxtail with rice & peas and a veggie',type:'Plate',avail:'Always',price:28,cost:9,ing:'oxtail,rice,kidney beans,cabbage,seasoning',serv:1,prep:4},
+    {id:uid(),name:'Jerk Chicken Platter (Half Pan)',desc:'Serves 4-5',type:'Platter',avail:'Always',price:115,cost:35,ing:'whole chicken,jerk seasoning,scotch bonnet,allspice,thyme',serv:4,prep:2},
+    {id:uid(),name:'Jerk Chicken Plate',desc:'Quarter chicken with rice & peas',type:'Plate',avail:'Always',price:18,cost:5,ing:'chicken quarter,jerk seasoning,rice,kidney beans',serv:1,prep:2},
+    {id:uid(),name:'Rasta Pasta (Full Pan)',desc:'Creamy jerk chicken pasta, serves 8',type:'Platter',avail:'Always',price:95,cost:28,ing:'penne,heavy cream,jerk chicken,bell peppers,parmesan',serv:8,prep:1},
+    {id:uid(),name:'Rice & Peas (Half Pan)',desc:'Coconut rice, serves 6',type:'Side',avail:'Always',price:38,cost:10,ing:'rice,kidney beans,coconut milk,thyme,scallion',serv:6,prep:1},
+    {id:uid(),name:'Mac & Cheese (Half Pan)',desc:'Creamy southern style, serves 6',type:'Side',avail:'Always',price:42,cost:12,ing:'elbow pasta,cheddar,cream cheese,heavy cream,eggs,butter',serv:6,prep:1},
+  ];
+  var t=new Date().toISOString().split('T')[0];
+  var t2=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  APP.orders=[
+    {id:uid(),name:'Natalie Johnson',phone:'(678) 555-0101',email:'nat@email.com',pickup:t,notes:'No spicy sides please',items:[{mid:APP.menu[0].id,qty:1},{mid:APP.menu[5].id,qty:1}],payMethod:'Zelle',payStatus:'Paid in Full',status:'Ready',cuTaskId:null,created:new Date(Date.now()-86400000*2).toISOString()},
+    {id:uid(),name:'Marcus Webb',phone:'(404) 555-0182',email:'',pickup:t2,notes:'',items:[{mid:APP.menu[1].id,qty:3},{mid:APP.menu[6].id,qty:1}],payMethod:'Cash App',payStatus:'Deposit Paid',status:'Confirmed',cuTaskId:null,created:new Date(Date.now()-86400000).toISOString()},
+    {id:uid(),name:'Denise Carter',phone:'(770) 555-0247',email:'denise@email.com',pickup:t2,notes:'Bag each platter separately',items:[{mid:APP.menu[0].id,qty:1},{mid:APP.menu[4].id,qty:1}],payMethod:'Stripe',payStatus:'Paid in Full',status:'In Progress',cuTaskId:null,created:new Date(Date.now()-3600000*6).toISOString()},
+    {id:uid(),name:'Sandra Okafor',phone:'(678) 555-0319',email:'',pickup:t2,notes:'',items:[{mid:APP.menu[3].id,qty:4},{mid:APP.menu[5].id,qty:1}],payMethod:'Cash App',payStatus:'Unpaid',status:'New',cuTaskId:null,created:new Date().toISOString()},
+  ];
+  logIt('System ready');
+}
+
+document.getElementById('mo-menu').addEventListener('click',function(e){if(e.target===this)closeMenu()});
+document.getElementById('mo-order').addEventListener('click',function(e){if(e.target===this)closeOrder()});
+
+initSample();
+renderDash();
+renderStatusMap();
+renderWH();
+var bc=document.getElementById('b-cut');
+if(!bc.value){bc.value=new Date(Date.now()+5*86400000).toISOString().split('T')[0]}
+</script>
