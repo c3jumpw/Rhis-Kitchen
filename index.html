@@ -103,15 +103,52 @@ textarea{resize:vertical;min-height:55px}
 .smap th{background:var(--bg2);font-weight:500;font-size:10px;letter-spacing:.03em;color:var(--mu)}
 .smap input{padding:4px 7px;font-size:12px;border-radius:5px}
 .whr{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+/* Auth overlay */
+.auth-overlay{position:fixed;inset:0;background:rgba(28,26,22,0.97);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.auth-card{background:var(--card);border-radius:16px;padding:2rem;width:100%;max-width:360px;text-align:center;border:0.5px solid var(--bd2)}
+.auth-logo{width:52px;height:52px;background:var(--am);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;margin:0 auto .875rem}
+.auth-title{font-size:18px;font-weight:500;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--mu);margin-bottom:1.5rem}
+.auth-input{width:100%;text-align:center;font-size:20px;letter-spacing:6px;padding:10px;margin-bottom:.75rem;border-radius:8px;border:0.5px solid var(--bd2);background:var(--bg2);color:var(--text)}
+.auth-btn{width:100%;padding:10px;background:var(--am);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:.5rem}
+.auth-btn:hover{background:#a86800}
+.auth-err{font-size:12px;color:var(--rd);min-height:18px}
+.auth-emp{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--gn2);color:var(--gn);font-weight:500}
+/* Customer autocomplete */
+.ac-wrap{position:relative}
+.ac-drop{position:absolute;top:100%;left:0;right:0;background:var(--card);border:0.5px solid var(--bd2);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-top:2px;display:none}
+.ac-item{padding:.5rem .75rem;cursor:pointer;border-bottom:0.5px solid var(--bd)}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.sel{background:var(--bg2)}
+.ac-item-name{font-size:13px;font-weight:500}
+.ac-item-sub{font-size:11px;color:var(--mu)}
+.ac-item-new{color:var(--am)}
+/* Voided orders */
+.oc.voided-card{opacity:.45}
+.oc.voided-card .on2{text-decoration:line-through}
+.voided-badge{font-size:10px;background:var(--rd2);color:var(--rd);padding:1px 6px;border-radius:4px;font-weight:500;margin-left:6px}
 </style>
 
 <div>
+<!-- Auth overlay -->
+<div class="auth-overlay" id="auth-overlay" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+    <div class="auth-title">Chef Rhi's Kitchen</div>
+    <div class="auth-sub">Enter your passcode to continue</div>
+    <input class="auth-input" type="password" id="auth-code" placeholder="••••••" maxlength="12" onkeydown="if(event.key==='Enter')doAuth()">
+    <button class="auth-btn" onclick="doAuth()">Sign In</button>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
 <div class="hd">
   <div class="brand">
     <div class="logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
     <div><div class="bn">Chef Rhi's Kitchen</div><div class="bs">ORDER MANAGEMENT SYSTEM</div></div>
   </div>
   <div class="hdr">
+    <span id="emp-badge" style="display:none" class="auth-emp"><i class="ti ti-user" aria-hidden="true"></i><span id="emp-name"></span></span>
     <div class="pill" id="cu-pill" onclick="showTab('settings',document.querySelector('[data-t=settings]'))">
       <div class="dot" id="cu-dot"></div>
       <span id="cu-lbl" style="font-size:11px;color:var(--mu)">ClickUp</span>
@@ -184,7 +221,11 @@ textarea{resize:vertical;min-height:55px}
     <div class="card">
       <div class="ct"><div class="ctl"><i class="ti ti-user" aria-hidden="true"></i> Customer</div></div>
       <div class="fg2">
-        <div class="fg"><label>NAME *</label><input id="on" placeholder="Full name"></div>
+        <div class="fg ac-wrap">
+          <label>NAME *</label>
+          <input id="on" placeholder="Customer name" autocomplete="off" oninput="onNameInput(this)" onblur="setTimeout(hideCustSug,180)" onkeydown="navCustSug(event)">
+          <div class="ac-drop" id="ac-drop"></div>
+        </div>
         <div class="fg"><label>PHONE *</label><input id="op" placeholder="+1 (555) 000-0000"></div>
         <div class="fg"><label>EMAIL</label><input id="oe" type="email" placeholder="email@example.com"></div>
         <div class="fg"><label>PICKUP DATE *</label><input id="od" type="date"></div>
@@ -345,6 +386,16 @@ textarea{resize:vertical;min-height:55px}
   </div>
 
   <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-lock" aria-hidden="true"></i> Access Control</div></div>
+    <div class="help">Publish the <strong>Employees</strong> tab in Google Sheets as CSV (same way as the Menu tab: File → Share → Publish to web → Employees → CSV). Paste the URL below. On each page load, staff must enter their passcode to access the app. If left blank, the app runs in open mode (setup/testing only).</div>
+    <div class="help" style="margin-top:.375rem">Employees tab columns: <code>Employee ID</code> | <code>Name</code> | <code>Passcode</code></div>
+    <div class="fg" style="margin-top:.5rem"><label>EMPLOYEES TAB CSV URL</label>
+      <input id="emp-csv" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=XXXXX&single=true&output=csv" oninput="CFG.employeesCSV=this.value">
+    </div>
+    <button class="btn bs2" onclick="testAuth()" style="margin-top:.375rem"><i class="ti ti-key" aria-hidden="true"></i> Test passcode screen</button>
+  </div>
+
+  <div class="card">
     <div class="ct"><div class="ctl"><i class="ti ti-building-store" aria-hidden="true"></i> Business & Notifications</div></div>
     <div class="fg2">
       <div class="fg"><label>BUSINESS NAME</label><input id="bizname" value="Chef Rhi's Kitchen" oninput="CFG.bizName=this.value"></div>
@@ -478,6 +529,7 @@ textarea{resize:vertical;min-height:55px}
     <div class="mb2" id="ombody"></div>
     <div class="mf">
       <button class="btn bs2 bd2" onclick="delOrder()"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+      <button class="btn bs2" id="void-btn" onclick="" style="border-color:var(--rd);color:var(--rd)"><i class="ti ti-ban" aria-hidden="true"></i> <span id="void-lbl">Void Order</span></button>
       <button class="btn bzp bs2" onclick="syncOneZap()"><i class="ti ti-refresh" aria-hidden="true"></i> Re-sync to workflow</button>
       <button class="btn" onclick="closeOrder()">Done</button>
     </div>
@@ -487,7 +539,9 @@ textarea{resize:vertical;min-height:55px}
 <div id="toast" class="toast"></div>
 
 <script>
-var STATUSES=['New','Confirmed','In Progress','Ready','Picked Up'];
+var STATUSES=['New','Confirmed','In Progress','Ready','Completed'];
+// Backward compat: treat legacy 'Picked Up' as 'Completed'
+function normStatus(s){return normStatus(s)==='Completed'?'Completed':s}
 var CFG={
   zap1:'https://hooks.zapier.com/hooks/catch/20594220/4btfeja/',
   zap2:'https://hooks.zapier.com/hooks/catch/20594220/4btfna2/',
@@ -496,7 +550,8 @@ var CFG={
   sheetsCSV:'',
   cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
   cuListId:'901326954708',
-  statusMap:{'New':'Open','Confirmed':'in progress','In Progress':'in progress','Ready':'ready','Picked Up':'closed'},
+  statusMap:{'New':'Open','Confirmed':'confirmed','In Progress':'cooking','Ready':'ready','Completed':'picked up'},
+  employeesCSV:'',
   autoSync:true,
   bizName:"Chef Rhi's Kitchen",
   adminPhone:'',adminEmail:'',
@@ -531,8 +586,8 @@ function showTab(id,el){
 }
 
 function renderDash(){
-  document.getElementById('m1').textContent=APP.orders.filter(o=>o.status!=='Picked Up').length;
-  document.getElementById('m2').textContent='$'+APP.orders.reduce((s,o)=>s+ot(o),0).toFixed(0);
+  document.getElementById('m1').textContent=APP.orders.filter(o=>normStatus(o.status)!=='Completed'&&!o.voided).length;
+  document.getElementById('m2').textContent='$'+APP.orders.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0).toFixed(0);
   document.getElementById('m3').textContent=customers().length;
   document.getElementById('m4').textContent=APP.orders.filter(o=>o.status==='Ready').length;
   document.getElementById('bcnt').textContent=customers().length;
@@ -568,7 +623,8 @@ function buildPayload(event,o){
   var taxAmt=o.taxAmt!==undefined?o.taxAmt:0;
   var total=o.total!==undefined?o.total:ot(o);
   var taxLine=taxRate>0?'Tax ('+(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%): $'+taxAmt.toFixed(2):'No tax';
-  return{event,order_id:o.id,task_name:o.name+' | $'+total.toFixed(0),customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,pickup_time:o.pickupDisplay||o.pickupTime||'',pickup_datetime:o.pickup+(o.pickupDisplay?' at '+o.pickupDisplay:''),pickup_timestamp_ms:pickupNoon,items_text:itemsDetail,items_sms:itemsSMS,subtotal:subtotal.toFixed(2),tax_rate:(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%',tax_amount:taxAmt.toFixed(2),total:total.toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,tax_line:taxLine,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
+  var displayId=(o.orderId||o.id).toUpperCase();
+  return{event,order_id:displayId,task_name:o.name+' | $'+total.toFixed(0),customer_name:o.name,customer_phone:o.phone,customer_email:o.email||'',pickup_date:o.pickup,pickup_time:o.pickupDisplay||o.pickupTime||'',pickup_datetime:o.pickup+(o.pickupDisplay?' at '+o.pickupDisplay:''),pickup_timestamp_ms:pickupNoon,items_text:itemsDetail,items_sms:itemsSMS,subtotal:subtotal.toFixed(2),tax_rate:(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%',tax_amount:taxAmt.toFixed(2),total:total.toFixed(2),payment_method:o.payMethod,payment_status:o.payStatus,tax_line:taxLine,notes:o.notes||'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail};
 }
 
 async function fireZap(url,data){
@@ -590,8 +646,8 @@ async function zapStatusChange(o,oldStatus){
   if(!CFG.zap2)return;
   var p=buildPayload('order.status',o);
   p.old_status=oldStatus;p.new_status=o.status;
-  p.is_pickup=o.status==='Picked Up';
-  if(o.status==='Picked Up')p.final_receipt_md=cuFinalReceiptMd(o);
+  p.is_pickup=o.statunormStatus(s)==='Completed';
+  if(o.statunormStatus(s)==='Completed')p.final_receipt_md=cuFinalReceiptMd(o);
   var ok=await fireZap(CFG.zap2,p);
   if(ok!==false&&o.status==='Ready')toast('Pickup notification sent to '+o.name);
   logIt('Zap 2 fired: '+o.name+' → '+o.status);
@@ -604,12 +660,22 @@ async function syncOneZap(){
 
 async function syncAllCU(){
   if(!CFG.zap2&&!CFG.cuToken){toast('Configure Zapier or ClickUp in Settings first');return}
-  toast('Syncing all active orders…');
-  for(var o of APP.orders.filter(x=>x.status!=='Picked Up')){
-    if(CFG.cuToken)await cuUpdateTask(o);
-    else if(CFG.zap2)await zapStatusChange(o,o.status);
+  var active=APP.orders.filter(x=>normStatus(x.status)!=='Completed');
+  toast('Syncing '+active.length+' orders…');
+  var done=0;
+  for(var o of active){
+    if(CFG.cuToken){
+      if(!o.cuTaskId)await cuCreateTask(o);
+      else await cuUpdateTask(o);
+      done++;
+      // 400ms delay between calls to respect ClickUp rate limits
+      if(done<active.length)await new Promise(r=>setTimeout(r,400));
+    }else if(CFG.zap2){
+      await zapStatusChange(o,o.status);
+      await new Promise(r=>setTimeout(r,200));
+    }
   }
-  toast('Sync complete');renderKanban();
+  toast('Sync complete — '+done+' orders updated');renderKanban();
 }
 
 function renderKanban(){
@@ -619,7 +685,7 @@ function renderKanban(){
       var total=ot(o);
       var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', ');
       var sync=o.cuTaskId?'<span style="color:var(--gn);font-size:10px" title="Synced to ClickUp">✓</span>':CFG.zap1?'<span style="color:var(--mu);font-size:10px" title="Zapier connected">⚡</span>':'';
-      return '<div class="oc" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</span></div></div>';
+      return '<div class="oc'+(o.voided?' voided-card':'')+'" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+(o.voided?'<span class="voided-badge">VOIDED</span>':'')+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</span></div></div>';
     }).join(''):'<div class="empty" style="padding:.375rem">—</div>';
     return '<div class="kcol"><div class="kh"><span>'+st.toUpperCase()+'</span><span class="kct">'+orders.length+'</span></div>'+cards+'</div>';
   }).join('');
@@ -644,8 +710,8 @@ function viewOrder(id){
     '<div><div style="font-size:10px;color:var(--mu)">PICKUP</div><div style="font-size:13px">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</div></div>'+
     '<div><div style="font-size:10px;color:var(--mu)">PAYMENT</div><span class="badge '+pc+'">'+o.payStatus+' · '+o.payMethod+'</span></div>'+
     '</div>'+
-    (o.notes?'<div style="background:var(--am2);border-radius:6px;padding:7px 9px;font-size:11px;margin-bottom:.75rem;color:var(--am)">'+o.notes+'</div>':'')+
-    (o.cuTaskId?'<div style="background:var(--gn2);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--gn)">✓ Order #'+o.id+' — in workflow</div>':'<div style="background:var(--bg2);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--mu)">Order #'+o.id+'</div>')+
+    (o.voided?'<div style="background:var(--rd2);border-radius:6px;padding:7px 9px;font-size:12px;margin-bottom:.75rem;color:var(--rd);font-weight:500">⚠ This order is marked as VOIDED and is excluded from revenue totals.</div>':'')+
+    (o.cuTaskId?'<div style="background:var(--gn2);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--gn)">✓ ORDER ID: '+(o.orderId||o.cuTaskId.toUpperCase())+' — in workflow</div>':'<div style="background:var(--bg2);border-radius:6px;padding:5px 9px;font-size:11px;margin-bottom:.75rem;color:var(--mu)">ORDER ID: '+o.id.toUpperCase()+'</div>')+
     items+subRow+taxRow+
     '<div class="gr" style="font-weight:500;font-size:13px;border-bottom:none;padding-top:8px"><span>Total</span><span style="color:var(--am)">$'+total.toFixed(2)+'</span></div>'+
     '<div class="divd"></div>'+
@@ -654,6 +720,15 @@ function viewOrder(id){
     '<div class="fg"><label>PAYMENT STATUS</label><select id="vm-pay" onchange="updatePay(\''+id+'\',this.value)">'+['Unpaid','Deposit Paid','Paid in Full'].map(s=>'<option'+(o.payStatus===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
     '</div>';
   document.getElementById('mo-order').classList.add('open');
+  // Wire void button
+  var vb=document.getElementById('void-btn');var vl=document.getElementById('void-lbl');
+  if(vb&&vl){
+    vl.textContent=o.voided?'Un-void Order':'Void Order';
+    vb.style.background=o.voided?'var(--gn2)':'transparent';
+    vb.style.borderColor=o.voided?'var(--gn)':'var(--rd)';
+    vb.style.color=o.voided?'var(--gn)':'var(--rd)';
+    vb.onclick=function(){toggleVoid(id)};
+  }
 }
 
 async function updateSt(id,s){
@@ -663,7 +738,7 @@ async function updateSt(id,s){
   if(CFG.zap2)await zapStatusChange(o,old);
   if(CFG.autoSync&&CFG.cuToken){
     await cuUpdateTask(o);
-    if(s==='Picked Up')await cuPostFinalReceipt(o);
+    if(normStatus(s)==='Completed')await cuPostFinalReceipt(o);
   }
   renderKanban();renderDash();toast('Status updated');
 }
@@ -791,7 +866,7 @@ function renderCustomers(q){
 
 function renderGrocery(){
   var all=document.getElementById('ga').checked;var date=document.getElementById('gd').value;
-  var rel=APP.orders.filter(o=>o.status!=='Picked Up'&&(all||o.pickup===date));
+  var rel=APP.orders.filter(o=>normStatus(o.status)!=='Completed'&&(all||o.pickup===date));
   var agg={},ing={};
   rel.forEach(o=>o.items.forEach(it=>{var m=APP.menu.find(x=>x.id===it.mid);if(!m)return;if(!agg[m.name])agg[m.name]={qty:0,cost:0};agg[m.name].qty+=it.qty;agg[m.name].cost+=m.cost*it.qty;(m.ing||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(i=>{ing[i]=(ing[i]||0)+it.qty})}));
   document.getElementById('gcost').textContent='$'+Object.values(agg).reduce((s,v)=>s+v.cost,0).toFixed(0);
@@ -848,7 +923,7 @@ function cuDesc(o){
   if(taxRate>0)md+='| Tax ('+(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%) | $'+taxAmt.toFixed(2)+' |\n';
   md+='| **Total** | **$'+total.toFixed(2)+'** |\n\n';
   md+='---\n\n';
-  md+='*Order ID: `'+o.id+'`*\n';
+  md+='*ORDER ID: `'+(o.orderId||o.id.toUpperCase())+'`*\n';
   md+='*Placed: '+new Date(o.created).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'*\n';
   if(o.notes)md+='\n> ⚠️ **Notes:** '+o.notes+'\n';
   return md;
@@ -876,7 +951,7 @@ function buildCUFields(o){
   addF('customer name',o.name);
   addF('customer phone',o.phone);
   addF('customer email',o.email);
-  addF('order id',o.id);
+  addF('order id',(o.orderId||o.id).toUpperCase());
   addF('order items',itemsText);
   addF('order notes',o.notes);
   addF('order total',ot(o).toFixed(2));
@@ -890,21 +965,31 @@ function buildCUFields(o){
 async function cuCreateTask(o){
   try{
     var dueMs=o.pickup?new Date(o.pickup+'T12:00:00').getTime():null;
-    var taskData={name:o.name+' | $'+ot(o).toFixed(0),description:cuDesc(o),status:CFG.statusMap[o.status]||'Open',due_date:dueMs,notify_all:false};
+    // Use the mapped status, fall back to 'Open' if not found
+    var cuStatus=CFG.statusMap[o.status]||'Open';
+    var taskData={
+      name:o.name+' | $'+ot(o).toFixed(0),
+      markdown_description:cuDesc(o),
+      status:cuStatus,
+      due_date:dueMs,
+      notify_all:false
+    };
     var cf=buildCUFields(o);if(cf.length)taskData.custom_fields=cf;
     var r=await cuAPI('POST','/list/'+CFG.cuListId+'/task',taskData);
-    o.cuTaskId=r.id;logIt('Added to workflow: '+o.name);
+    o.cuTaskId=r.id;
+    // Order ID = ClickUp Task ID in all caps
+    o.orderId=r.id.toUpperCase();
+    logIt('Added to workflow: '+o.name+' ('+o.orderId+')');
     document.getElementById('cu-dot').className='dot ok';renderKanban();
   }catch(e){toast('Could not add to workflow — '+e.message)}
 }
 async function cuUpdateTask(o){
   if(!o.cuTaskId){cuCreateTask(o);return}
   try{
-    var upd={status:CFG.statusMap[o.status]||'Open'};
-    // Also sync pay status custom field when it changes
+    var upd={status:CFG.statusMap[o.status]||'Open',markdown_description:cuDesc(o)};
     var cf=buildCUFields(o);if(cf.length)upd.custom_fields=cf;
     await cuAPI('PUT','/task/'+o.cuTaskId,upd);
-    logIt('Workflow updated: '+o.name);
+    logIt('Workflow updated: '+(o.orderId||o.cuTaskId));
   }catch(e){}
 }
 function cuFinalReceiptMd(o){
@@ -922,7 +1007,7 @@ function cuFinalReceiptMd(o){
   md+='| | |\n|---|---|\n| Subtotal | $'+subtotal.toFixed(2)+' |\n';
   if(taxRate>0)md+='| Tax ('+(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%) | $'+taxAmt.toFixed(2)+' |\n';
   md+='| **Total** | **$'+total.toFixed(2)+'** |\n\n---\n\n';
-  md+='**Order #`'+o.id+'`** · *'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'*\n\n';
+  md+='**ORDER ID: `'+(o.orderId||o.id.toUpperCase())+'`** · *'+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'*\n\n';
   md+='*Thank you! Come back soon.*\n*Chef Rhi\'s Kitchen*\n';
   return md;
 }
@@ -970,6 +1055,113 @@ function genDeploy(){
   logIt('App exported for deployment');
 }
 
+// ── AUTH / PASSCODE ──────────────────────────────────────────────
+function checkAuth(){
+  var authed=sessionStorage.getItem('crk_employee');
+  if(authed){try{var e=JSON.parse(authed);showEmpBadge(e.name);}catch(x){}return}
+  if(!CFG.employeesCSV){return} // No sheet configured — skip auth (setup mode)
+  document.getElementById('auth-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('auth-code').focus(),100);
+}
+async function doAuth(){
+  var code=document.getElementById('auth-code').value.trim();
+  var err=document.getElementById('auth-err');
+  if(!code){err.textContent='Enter your passcode';return}
+  if(!CFG.employeesCSV){
+    // No sheet — accept any code in setup mode
+    sessionStorage.setItem('crk_employee',JSON.stringify({id:'SETUP',name:'Admin'}));
+    document.getElementById('auth-overlay').style.display='none';
+    showEmpBadge('Admin');return;
+  }
+  err.textContent='Checking…';
+  try{
+    var r=await fetch(CFG.employeesCSV+'&_='+Date.now());
+    var csv=await r.text();
+    var lines=csv.trim().split('\n').slice(1);
+    var found=null;
+    lines.forEach(line=>{
+      var cols=line.split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+      if(cols.length>=3&&cols[2]===code)found={id:cols[0],name:cols[1]};
+    });
+    if(found){
+      sessionStorage.setItem('crk_employee',JSON.stringify(found));
+      document.getElementById('auth-overlay').style.display='none';
+      showEmpBadge(found.name);
+      toast('Welcome, '+found.name+'!');
+    }else{
+      err.textContent='Invalid passcode — try again';
+      document.getElementById('auth-code').value='';
+      document.getElementById('auth-code').focus();
+    }
+  }catch(e){err.textContent='Could not verify — check connection'}
+}
+function showEmpBadge(name){
+  var b=document.getElementById('emp-badge');var n=document.getElementById('emp-name');
+  if(b&&n){n.textContent=name;b.style.display='inline-flex';}
+}
+
+// ── CUSTOMER AUTOCOMPLETE ─────────────────────────────────────────
+var acIdx=-1;
+function onNameInput(el){
+  acIdx=-1;
+  var val=el.value.trim();
+  if(!val){hideCustSug();return}
+  var custs=customers().filter(c=>c.name.toLowerCase().includes(val.toLowerCase()));
+  var html='';
+  custs.slice(0,6).forEach((c,i)=>{
+    html+='<div class="ac-item" id="ac-'+i+'" onmousedown="selectCust(\''+c.name.replace(/'/g,"\\'")+'\',' +
+      '\''+c.phone.replace(/'/g,"\\'")+'\',' +
+      '\''+c.email.replace(/'/g,"\\'")+'\')">' +
+      '<div class="ac-item-name">'+c.name+'</div>' +
+      '<div class="ac-item-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div>';
+  });
+  var exact=custs.some(c=>c.name.toLowerCase()===val.toLowerCase());
+  if(!exact){
+    html+='<div class="ac-item ac-item-new" onmousedown="newCustSug(\''+val.replace(/'/g,"\\'")+'\')">' +
+      '<div class="ac-item-name ac-item-new">+ New customer: <strong>'+val+'</strong></div>' +
+      '<div class="ac-item-sub">Not in database — will be added on order</div></div>';
+  }
+  var drop=document.getElementById('ac-drop');
+  if(!html||(!custs.length&&!val)){hideCustSug();return}
+  drop.innerHTML=html;drop.style.display='block';
+}
+function selectCust(name,phone,email){
+  document.getElementById('on').value=name;
+  if(phone)document.getElementById('op').value=phone;
+  if(email&&email!=='undefined')document.getElementById('oe').value=email;
+  hideCustSug();
+}
+function newCustSug(name){document.getElementById('on').value=name;hideCustSug();toast('New customer — fill in phone and email below')}
+function hideCustSug(){var el=document.getElementById('ac-drop');if(el)el.style.display='none';acIdx=-1}
+function navCustSug(e){
+  var drop=document.getElementById('ac-drop');
+  if(!drop||drop.style.display==='none')return;
+  var items=drop.querySelectorAll('.ac-item');
+  if(e.key==='ArrowDown'){e.preventDefault();acIdx=Math.min(acIdx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));}
+  else if(e.key==='ArrowUp'){e.preventDefault();acIdx=Math.max(acIdx-1,0);items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));}
+  else if(e.key==='Enter'&&acIdx>=0){e.preventDefault();items[acIdx].dispatchEvent(new MouseEvent('mousedown'));}
+  else if(e.key==='Escape')hideCustSug();
+}
+
+// ── VOIDED ORDERS ─────────────────────────────────────────────────
+function toggleVoid(id){
+  var o=APP.orders.find(x=>x.id===id);if(!o)return;
+  o.voided=!o.voided;
+  logIt((o.voided?'Voided':'Un-voided')+': '+o.name);
+  if(CFG.cuToken&&o.cuTaskId)syncVoidToClickUp(o);
+  viewOrder(id);renderKanban();renderDash();
+  toast(o.voided?'Order marked as voided — excluded from revenue':'Order restored');
+}
+async function syncVoidToClickUp(o){
+  if(!CFG.cuFieldMap)return;
+  var f=CFG.cuFieldMap['voided']||CFG.cuFieldMap['void'];
+  if(!f)return;
+  try{
+    var val=o.voided?(f.options&&f.options[0]?f.options[0].orderindex:true):null;
+    await cuAPI('POST','/task/'+o.cuTaskId+'/field/'+f.id,{value:val});
+  }catch(e){}
+}
+
 function initSample(){
   APP.menu=[
     {id:uid(),name:'Oxtail Platter (Half Pan)',desc:'Slow-braised, serves 4-6',type:'Platter',avail:'Always',price:175,cost:60,ing:'oxtail,butter beans,scotch bonnet,allspice,thyme,garlic,onion',serv:5,prep:4},
@@ -1003,7 +1195,8 @@ function initUI(){
     'bizname':CFG.bizName,'gh-url':CFG.ghURL,
     'adm-phone':CFG.adminPhone,'adm-email':CFG.adminEmail,
     'stripe-key':CFG.stripePublicKey,
-    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4
+    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4,
+    'emp-csv':CFG.employeesCSV
   };
   Object.entries(fields).forEach(([id,val])=>{var el=document.getElementById(id);if(el&&val)el.value=val});
   document.getElementById('autosync').checked=CFG.autoSync;
@@ -1034,6 +1227,13 @@ function initUI(){
       }).catch(()=>{});
     }
   }
+  checkAuth();
+}
+function testAuth(){
+  sessionStorage.removeItem('crk_employee');
+  var b=document.getElementById('emp-badge');if(b)b.style.display='none';
+  document.getElementById('auth-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('auth-code').focus(),100);
 }
 initUI();
 </script>
