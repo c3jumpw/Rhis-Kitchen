@@ -351,8 +351,14 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" value="https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/" oninput="CFG.zap3=this.value"></div>
       <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" value="https://hooks.zapier.com/hooks/catch/20594220/4btabe6/" oninput="CFG.zap4=this.value"></div>
     </div>
-    <div style="font-size:11px;color:var(--mu);margin-top:.25rem"><b>Payload sent to Zapier Zap 1 (new order):</b></div>
-    <div class="payload-box" id="payload-preview">{ "event": "order.new", "order_id": "abc123", "customer_name": "Natalie Johnson", "customer_phone": "+16785550101", "customer_email": "nat@email.com", "pickup_date": "2026-05-25", "items_text": "1× Oxtail Platter (Half Pan) · 1× Rice & Peas (Half Pan)", "total": "213.00", "payment_method": "Cash App", "payment_status": "Deposit Paid", "notes": "No spicy sides please", "admin_phone": "+14045550100", "admin_email": "jeffrey@email.com" }</div>
+    <div style="font-size:11px;font-weight:500;color:var(--zp);margin-bottom:.5rem;margin-top:.625rem">TEST WEBHOOKS</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:.75rem;line-height:1.6">Use these to send a known payload to each Zap while setting it up in Zapier. In Zapier: click <strong>Test Trigger</strong> first, then click the matching button below, then click <strong>Find new records</strong> in Zapier.</div>
+    <div class="row" style="flex-wrap:wrap;gap:7px">
+      <button class="btn bzp bs2" onclick="testZapFire(1)"><i class="ti ti-send" aria-hidden="true"></i> Fire test → Zap 1</button>
+      <button class="btn bzp bs2" onclick="testZapFire(2)"><i class="ti ti-send" aria-hidden="true"></i> Fire test → Zap 2</button>
+      <button class="btn bzp bs2" onclick="testZapFire(3)"><i class="ti ti-send" aria-hidden="true"></i> Fire test → Zap 3</button>
+    </div>
+    <div id="zap-test-status" style="font-size:11px;color:var(--mu);margin-top:.5rem;min-height:16px"></div>
   </div>
 
   <div class="int-sec" style="border-color:var(--gs);background:var(--gs2)">
@@ -923,6 +929,27 @@ function renderWH(){
   el.innerHTML=APP.webhooks.map((w,i)=>'<div class="whr"><select style="width:130px;font-size:11px;padding:4px 7px;border-radius:6px;border:0.5px solid var(--bd)" onchange="APP.webhooks['+i+'].event=this.value">'+['order.new','order.status','order.paid','blast'].map(e=>'<option'+(w.event===e?' selected':'')+'>'+e+'</option>').join('')+'</select><input value="'+w.url+'" placeholder="https://…" style="flex:1;font-size:12px" onchange="APP.webhooks['+i+'].url=this.value"><button class="btn bs2 bd2" onclick="APP.webhooks.splice('+i+',1);renderWH()"><i class="ti ti-x" aria-hidden="true"></i></button></div>').join('');
 }
 function addWH(){APP.webhooks.push({event:'order.new',url:''});renderWH()}
+
+async function testZapFire(num){
+  var urls={1:CFG.zap1,2:CFG.zap2,3:CFG.zap3};
+  var url=urls[num];
+  var st=document.getElementById('zap-test-status');
+  if(!url){if(st)st.textContent='Zap '+num+' URL not configured';return;}
+  var payloads={
+    1:{event:'order.new',order_id:'TEST001',task_name:'Test Customer | $175',customer_name:'Test Customer',customer_phone:'+14045550100',customer_email:'test@example.com',pickup_date:'2026-06-01',pickup_time:'2:00 PM',pickup_datetime:'2026-06-01 at 2:00 PM',items_text:'- Oxtail Platter (Half Pan) ($175)',items_sms:'Oxtail Platter (Half Pan)',subtotal:'175.00',tax_rate:'0%',tax_amount:'0.00',total:'175.00',payment_method:'Cash App',payment_status:'Deposit Paid',notes:'Test order — ignore',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail},
+    2:{event:'order.status',order_id:'TEST001',task_name:'Test Customer | $175',customer_name:'Test Customer',customer_phone:'+14045550100',customer_email:'test@example.com',pickup_date:'2026-06-01',pickup_time:'2:00 PM',pickup_datetime:'2026-06-01 at 2:00 PM',items_text:'- Oxtail Platter (Half Pan) ($175)',items_sms:'Oxtail Platter (Half Pan)',subtotal:'175.00',tax_rate:'0%',tax_amount:'0.00',total:'175.00',payment_method:'Cash App',payment_status:'Deposit Paid',old_status:'Confirmed',new_status:'Ready',is_pickup:false,notes:'',admin_phone:CFG.adminPhone,admin_email:CFG.adminEmail},
+    3:{event:'blast',occasion:'Test Blast',message:'This is a test blast message.',cutoff_date:'2026-06-05',customer_count:2,customers:[{name:'Test Customer 1',phone:'+14045550101',email:'test1@example.com'},{name:'Test Customer 2',phone:'+14045550102',email:'test2@example.com'}]}
+  };
+  if(st)st.textContent='Sending to Zap '+num+'…';
+  try{
+    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloads[num])});
+    if(st)st.textContent='✓ Sent — go to Zapier and click "Find new records"';
+    toast('Test payload fired to Zap '+num);
+  }catch(e){
+    if(st)st.textContent='✗ Error: '+e.message;
+    toast('Could not reach Zap '+num+' — check console');
+  }
+}
 
 async function cuAPI(method,path,body){if(!CFG.cuToken)throw new Error('No token');var r=await fetch('https://api.clickup.com/api/v2'+path,{method,headers:{'Authorization':CFG.cuToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('ClickUp '+r.status);return r.json()}
 function cuDesc(o){
