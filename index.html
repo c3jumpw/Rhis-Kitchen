@@ -541,7 +541,9 @@ textarea{resize:vertical;min-height:55px}
 <script>
 var STATUSES=['New','Confirmed','In Progress','Ready','Completed'];
 // Backward compat: treat legacy 'Picked Up' as 'Completed'
-function normStatus(s){return normStatus(s)==='Completed'?'Completed':s}
+function normStatus(s){return s==='Picked Up'?'Completed':s}
+// Holds pending status change — applied and synced only when user clicks Done
+var _pendingStatus=null;
 var CFG={
   zap1:'https://hooks.zapier.com/hooks/catch/20594220/4btfeja/',
   zap2:'https://hooks.zapier.com/hooks/catch/20594220/4btfna2/',
@@ -628,9 +630,9 @@ function buildPayload(event,o){
 }
 
 async function fireZap(url,data){
-  if(!url){return}
+  if(!url)return;
   try{
-    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     return true;
   }catch(e){return false}
 }
@@ -646,8 +648,8 @@ async function zapStatusChange(o,oldStatus){
   if(!CFG.zap2)return;
   var p=buildPayload('order.status',o);
   p.old_status=oldStatus;p.new_status=o.status;
-  p.is_pickup=o.statunormStatus(s)==='Completed';
-  if(o.statunormStatus(s)==='Completed')p.final_receipt_md=cuFinalReceiptMd(o);
+  p.is_pickup=normStatus(o.status)==='Completed';
+  if(normStatus(o.status)==='Completed')p.final_receipt_md=cuFinalReceiptMd(o);
   var ok=await fireZap(CFG.zap2,p);
   if(ok!==false&&o.status==='Ready')toast('Pickup notification sent to '+o.name);
   logIt('Zap 2 fired: '+o.name+' → '+o.status);
@@ -699,7 +701,7 @@ function renderKanban(){
 
 function viewOrder(id){
   var o=APP.orders.find(x=>x.id===id);if(!o)return;
-  viewOID=id;
+  viewOID=id;_pendingStatus=null;
   document.getElementById('omtitle').textContent=o.name;
   var total=ot(o);
   var subtotal=o.subtotal!==undefined?o.subtotal:total;
@@ -737,21 +739,37 @@ function viewOrder(id){
   }
 }
 
-async function updateSt(id,s){
+function updateSt(id,s){
+  // Store the change — nothing fires until Done is clicked
   var o=APP.orders.find(x=>x.id===id);if(!o)return;
-  var old=o.status;o.status=s;
-  logIt(o.name+' → '+s);
-  // Update UI immediately — don't wait for background sync
-  renderKanban();renderDash();toast('Status updated');
-  // Background sync — fires after UI already reflects the change
-  if(CFG.zap2)await zapStatusChange(o,old);
-  if(CFG.autoSync&&CFG.cuToken){
-    await cuUpdateTask(o);
-    if(normStatus(s)==='Completed')await cuPostFinalReceipt(o);
-  }
+  _pendingStatus={id,newStatus:s,oldStatus:o.status};
+  o.status=s;
+  // Subtle acknowledgement without closing modal
+  toast('Status set to '+s+' — click Done to save');
 }
 function updatePay(id,s){var o=APP.orders.find(x=>x.id===id);if(o){o.payStatus=s;toast('Payment updated')}}
-function closeOrder(){document.getElementById('mo-order').classList.remove('open');viewOID=null;renderKanban();}
+function closeOrder(){
+  document.getElementById('mo-order').classList.remove('open');
+  var psc=_pendingStatus;
+  _pendingStatus=null;
+  viewOID=null;
+  if(psc){
+    var o=APP.orders.find(x=>x.id===psc.id);
+    if(o){
+      logIt(o.name+' → '+psc.newStatus);
+      // 1. Kanban updates immediately on Done
+      renderKanban();renderDash();toast('Status updated');
+      // 2. Background sync fires quietly after UI is already updated
+      if(CFG.zap2)zapStatusChange(o,psc.oldStatus).catch(()=>{});
+      if(CFG.autoSync&&CFG.cuToken){
+        cuUpdateTask(o).catch(()=>{});
+        if(normStatus(psc.newStatus)==='Completed')cuPostFinalReceipt(o).catch(()=>{});
+      }
+    }
+  }else{
+    renderKanban();
+  }
+}
 function delOrder(){if(!viewOID)return;if(!confirm('Delete?'))return;APP.orders=APP.orders.filter(o=>o.id!==viewOID);logIt('Order deleted');closeOrder();renderKanban();renderDash();toast('Deleted')}
 
 function renderPicker(){
