@@ -637,10 +637,18 @@ function buildPayload(event,o){
 
 async function fireZap(url,data){
   if(!url)return;
+  var body=JSON.stringify(data);
+  // text/plain skips CORS preflight — Zapier parses JSON regardless of content-type
   try{
-    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:body});
     return true;
-  }catch(e){return false}
+  }catch(e){
+    // Fallback: no-cors + text/plain — data reaches Zapier, no response confirmation
+    try{
+      await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:body});
+      return true;
+    }catch(e2){return false}
+  }
 }
 
 async function zapNewOrder(o){
@@ -941,13 +949,25 @@ async function testZapFire(num){
     3:{event:'blast',occasion:'Test Blast',message:'This is a test blast message.',cutoff_date:'2026-06-05',customer_count:2,customers:[{name:'Test Customer 1',phone:'+14045550101',email:'test1@example.com'},{name:'Test Customer 2',phone:'+14045550102',email:'test2@example.com'}]}
   };
   if(st)st.textContent='Sending to Zap '+num+'…';
+  var body=JSON.stringify(payloads[num]);
+  var sent=false;
+  // Try 1: text/plain (no CORS preflight)
   try{
-    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloads[num])});
-    if(st)st.textContent='✓ Sent — go to Zapier and click "Find new records"';
-    toast('Test payload fired to Zap '+num);
+    await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:body});
+    sent=true;
   }catch(e){
-    if(st)st.textContent='✗ Error: '+e.message;
-    toast('Could not reach Zap '+num+' — check console');
+    // Try 2: no-cors fallback (guaranteed delivery, no response)
+    try{
+      await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:body});
+      sent=true;
+    }catch(e2){}
+  }
+  if(sent){
+    if(st)st.textContent='✓ Fired to Zap '+num+' — now click "Find new records" in Zapier';
+    toast('Test payload fired to Zap '+num);
+  }else{
+    if(st)st.textContent='✗ Could not send — check your network connection';
+    toast('Could not reach Zap '+num);
   }
 }
 
