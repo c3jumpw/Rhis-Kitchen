@@ -196,10 +196,10 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>OCCASION</label><input id="b-occ" placeholder="Mother's Day Special"></div>
       <div class="fg"><label>ORDER CUTOFF</label><input type="date" id="b-cut"></div>
     </div>
-    <div class="fg"><label>MESSAGE (sent via Twilio SMS + SendGrid email via Zapier)</label><textarea id="b-msg" placeholder="Hey! We're taking pre-orders for our Mother's Day menu. Order by Wednesday the 7th — oxtail platters, jerk chicken, rice & peas. Reply or click the link to order!"></textarea></div>
+    <div class="fg"><label>MESSAGE</label><textarea id="b-msg" placeholder="Hey! We're taking pre-orders for our Mother's Day menu. Order by Wednesday the 7th — oxtail platters, jerk chicken, rice & peas. Reply or click the link to order!"></textarea></div>
     <div class="row" style="margin-top:.5rem;gap:8px">
-      <button class="btn bp" onclick="sendBlast()"><i class="ti ti-send" aria-hidden="true"></i> Send Blast via Zapier (<span id="bcnt">0</span> customers)</button>
-      <span style="font-size:11px;color:var(--mu)">→ Zap 3 fires Twilio SMS + SendGrid email to each customer</span>
+      <button class="btn bp" onclick="sendBlast()"><i class="ti ti-send" aria-hidden="true"></i> Send Blast (<span id="bcnt">0</span> customers)</button>
+      <span style="font-size:11px;color:var(--mu)">→ Sends SMS and email to each customer</span>
     </div>
   </div>
 </div>
@@ -208,7 +208,7 @@ textarea{resize:vertical;min-height:55px}
   <div class="row bw" style="margin-bottom:1rem">
     <div style="font-size:15px;font-weight:500">Orders</div>
     <div class="row">
-      <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync ClickUp</button>
+      <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync Orders</button>
       <button class="btn bp bs2" onclick="showTab('new',document.querySelector('[data-t=new]'))"><i class="ti ti-plus" aria-hidden="true"></i> New Order</button>
     </div>
   </div>
@@ -639,7 +639,7 @@ async function zapNewOrder(o){
   if(!CFG.zap1)return;
   var ok=await fireZap(CFG.zap1,buildPayload('order.new',o));
   logIt('Zap 1 fired: new order '+o.name);
-  if(ok!==false)toast('Order sent to Zapier → ClickUp + Twilio SMS + SendGrid email');
+  if(ok!==false)toast('Order added to workflow — notifications sent');
 }
 
 async function zapStatusChange(o,oldStatus){
@@ -655,7 +655,13 @@ async function zapStatusChange(o,oldStatus){
 
 async function syncOneZap(){
   var o=APP.orders.find(x=>x.id===viewOID);if(!o)return;
-  await zapNewOrder(o);
+  // Fires Zap 2 (status change) — use this to test Zap 2 in Zapier
+  if(CFG.zap2)await zapStatusChange(o,o.status);
+  // Also sync directly to ClickUp
+  if(CFG.cuToken){
+    if(o.cuTaskId)await cuUpdateTask(o);else await cuCreateTask(o);
+  }
+  toast('Order synced to workflow');
 }
 
 async function syncAllCU(){
@@ -735,15 +741,17 @@ async function updateSt(id,s){
   var o=APP.orders.find(x=>x.id===id);if(!o)return;
   var old=o.status;o.status=s;
   logIt(o.name+' → '+s);
+  // Update UI immediately — don't wait for background sync
+  renderKanban();renderDash();toast('Status updated');
+  // Background sync — fires after UI already reflects the change
   if(CFG.zap2)await zapStatusChange(o,old);
   if(CFG.autoSync&&CFG.cuToken){
     await cuUpdateTask(o);
     if(normStatus(s)==='Completed')await cuPostFinalReceipt(o);
   }
-  renderKanban();renderDash();toast('Status updated');
 }
 function updatePay(id,s){var o=APP.orders.find(x=>x.id===id);if(o){o.payStatus=s;toast('Payment updated')}}
-function closeOrder(){document.getElementById('mo-order').classList.remove('open');viewOID=null}
+function closeOrder(){document.getElementById('mo-order').classList.remove('open');viewOID=null;renderKanban();}
 function delOrder(){if(!viewOID)return;if(!confirm('Delete?'))return;APP.orders=APP.orders.filter(o=>o.id!==viewOID);logIt('Order deleted');closeOrder();renderKanban();renderDash();toast('Deleted')}
 
 function renderPicker(){
