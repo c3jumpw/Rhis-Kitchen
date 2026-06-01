@@ -501,7 +501,8 @@ textarea{resize:vertical;min-height:55px}
       <button class="btn bp" onclick="genDeploy()"><i class="ti ti-download" aria-hidden="true"></i> Download App File</button>
       <button class="btn bs2" onclick="exportJSON()"><i class="ti ti-package" aria-hidden="true"></i> Export Data Backup</button>
       <label class="btn bs2" style="cursor:pointer"><i class="ti ti-upload" aria-hidden="true"></i> Import Backup<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
-      <button class="btn bs2 bd2" onclick="clearData()"><i class="ti ti-trash" aria-hidden="true"></i> Clear Data</button>
+      <button class="btn bs2" onclick="clearTestOrders()" style="border-color:var(--am);color:var(--am)"><i class="ti ti-eraser" aria-hidden="true"></i> Clear Test Orders</button>
+      <button class="btn bs2 bd2" onclick="clearData()"><i class="ti ti-trash" aria-hidden="true"></i> Clear All Orders</button>
     </div>
   </div>
 </div>
@@ -571,7 +572,7 @@ var CFG={
 };
 var APP={orders:[],menu:[],webhooks:[]};
 var LOG=[];
-var editMI=-1,viewOID=null,iqtys={};
+var editMenuIdx=-1,viewOID=null,iqtys={};
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function toast(m,dur){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur||2800)}
@@ -884,16 +885,28 @@ function renderMenu(){
   if(!APP.menu.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No items yet. Click "Quick Add Item" or sync from Google Sheets.</div>';return}
   g.innerHTML=APP.menu.map((m,i)=>'<div class="mi"><div class="mia"><button class="btn bs2" onclick="editMI('+i+')"><i class="ti ti-edit" aria-hidden="true"></i></button><button class="btn bs2 bd2" onclick="delMI('+i+')"><i class="ti ti-trash" aria-hidden="true"></i></button></div><div class="min2">'+m.name+'</div><div style="font-size:11px;color:var(--mu);margin-bottom:5px"><span class="badge bgr">'+m.type+'</span></div><div style="font-size:11px;color:var(--mu);margin-bottom:7px">'+m.desc+'</div><div class="mip">$'+m.price+'</div><div style="font-size:10px;color:var(--hi)">Cost: $'+m.cost+' · '+Math.round((1-m.cost/m.price)*100)+'% margin</div></div>').join('');
 }
-function openMenu(idx){editMI=idx!==undefined?idx:-1;var m=idx!==undefined?APP.menu[idx]:null;document.getElementById('mmtitle').textContent=m?'Edit Item':'Add Menu Item';['mm-n','mm-d','mm-t','mm-a','mm-p','mm-c','mm-i','mm-s','mm-pr'].forEach(id=>{var k=id.replace('mm-','');var map={'n':'name','d':'desc','t':'type','a':'avail','p':'price','c':'cost','i':'ing','s':'serv','pr':'prep'};document.getElementById(id).value=m&&m[map[k]]!==undefined?m[map[k]]:''});document.getElementById('mo-menu').classList.add('open')}
+function openMenu(idx){
+  editMenuIdx=idx!==undefined?idx:-1;
+  var m=idx!==undefined?APP.menu[idx]:null;
+  document.getElementById('mmtitle').textContent=m?'Edit Item':'Add Menu Item';
+  var map={'mm-n':'name','mm-d':'desc','mm-t':'type','mm-a':'avail','mm-p':'price','mm-c':'cost','mm-i':'ing','mm-s':'serv','mm-pr':'prep'};
+  Object.entries(map).forEach(([elId,key])=>{var el=document.getElementById(elId);if(el)el.value=m&&m[key]!==undefined?m[key]:'';});
+  document.getElementById('mo-menu').classList.add('open');
+}
 function closeMenu(){document.getElementById('mo-menu').classList.remove('open')}
 function editMI(i){openMenu(i)}
-function delMI(i){if(!confirm('Remove?'))return;APP.menu.splice(i,1);renderMenu();toast('Removed')}
+function delMI(i){
+  var m=APP.menu[i];if(!m)return;
+  if(!confirm('Remove "'+m.name+'" from the menu?\n\nExisting orders with this item will still show it.'))return;
+  APP.menu.splice(i,1);renderMenu();toast('"'+m.name+'" removed');
+}
 function saveMI(){
-  var n=document.getElementById('mm-n').value.trim();var p=parseFloat(document.getElementById('mm-p').value);
+  var n=document.getElementById('mm-n').value.trim();
+  var p=parseFloat(document.getElementById('mm-p').value);
   if(!n||isNaN(p)){toast('Name and price required');return}
-  var m={id:editMI>=0?APP.menu[editMI].id:uid(),name:n,desc:document.getElementById('mm-d').value,type:document.getElementById('mm-t').value,avail:document.getElementById('mm-a').value,price:p,cost:parseFloat(document.getElementById('mm-c').value)||0,ing:document.getElementById('mm-i').value,serv:parseInt(document.getElementById('mm-s').value)||1,prep:parseFloat(document.getElementById('mm-pr').value)||0};
-  if(editMI>=0)APP.menu[editMI]=m;else APP.menu.push(m);
-  closeMenu();renderMenu();toast(editMI>=0?'Updated':'Item added');
+  var m={id:editMenuIdx>=0?APP.menu[editMenuIdx].id:uid(),name:n,desc:document.getElementById('mm-d').value,type:document.getElementById('mm-t').value,avail:document.getElementById('mm-a').value,price:p,cost:parseFloat(document.getElementById('mm-c').value)||0,ing:document.getElementById('mm-i').value,serv:parseInt(document.getElementById('mm-s').value)||1,prep:parseFloat(document.getElementById('mm-pr').value)||0};
+  if(editMenuIdx>=0)APP.menu[editMenuIdx]=m;else APP.menu.push(m);
+  closeMenu();renderMenu();toast(editMenuIdx>=0?'"'+m.name+'" updated':'Item added');
 }
 
 function renderCustomers(q){
@@ -1117,7 +1130,22 @@ async function fetchCUStatuses(){
 function exportCSV(){var rows=[['Name','Phone','Email','Pickup','Status','Payment','Total','Items']];APP.orders.forEach(o=>{var it=o.items.map(i=>{var m=APP.menu.find(x=>x.id===i.mid);return m?(i.qty>1?i.qty+'×':'')+m.name:''}).join('; ');rows.push([o.name,o.phone,o.email,o.pickup,o.status,o.payStatus+' '+o.payMethod,ot(o).toFixed(2),it])});dlBlob(rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'),'ree-orders.csv','text/csv');toast('CSV exported')}
 function exportJSON(){dlBlob(JSON.stringify({orders:APP.orders,menu:APP.menu,webhooks:APP.webhooks,cfg:CFG,log:LOG},null,2),'ree-backup.json','application/json');toast('Backup downloaded')}
 function importJSON(inp){var r=new FileReader();r.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.orders)APP.orders=d.orders;if(d.menu)APP.menu=d.menu;if(d.webhooks)APP.webhooks=d.webhooks;if(d.cfg)Object.assign(CFG,d.cfg);if(d.log)LOG=d.log;renderDash();renderMenu();toast('Backup restored ✓')}catch(e){toast('Invalid file')}};r.readAsText(inp.files[0])}
-function clearData(){if(!confirm('Clear all orders and customers?'))return;APP.orders=[];LOG=[];renderDash();toast('Cleared')}
+function clearData(){if(!confirm('Clear ALL orders and customers?\n\nMenu items will be kept. This cannot be undone.'))return;APP.orders=[];LOG=[];renderDash();renderKanban&&renderKanban();toast('All orders cleared')}
+function clearTestOrders(){
+  var before=APP.orders.length;
+  // Remove orders with test IDs or no cuTaskId that were created during testing
+  var testIds=['TEST001','TEST002','TEST003'];
+  var choice=confirm('This will remove orders where:\n• Order ID starts with TEST\n• Or: select "Cancel" to instead remove ALL orders with no ClickUp task ID\n\nClick OK to remove TEST orders only, Cancel to remove all unsynced orders.');
+  if(choice){
+    APP.orders=APP.orders.filter(o=>!testIds.some(t=>(o.orderId||o.id).toUpperCase().startsWith(t)));
+  }else{
+    APP.orders=APP.orders.filter(o=>o.cuTaskId);
+  }
+  var removed=before-APP.orders.length;
+  logIt('Cleared '+removed+' test orders');
+  renderDash();if(typeof renderKanban==='function')renderKanban();
+  toast(removed+' test orders removed');
+}
 function dlBlob(c,n,t){var b=new Blob([c],{type:t});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();URL.revokeObjectURL(a.href)}
 
 function genDeploy(){
