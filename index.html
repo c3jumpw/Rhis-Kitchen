@@ -149,13 +149,13 @@ textarea{resize:vertical;min-height:55px}
   </div>
   <div class="hdr">
     <span id="emp-badge" style="display:none" class="auth-emp"><i class="ti ti-user" aria-hidden="true"></i><span id="emp-name"></span></span>
-    <div class="pill" id="cu-pill" onclick="showTab('settings',document.querySelector('[data-t=settings]'))">
+    <div class="pill" id="cu-pill" onclick="showTab('settings',document.querySelector('[data-t=settings]'))" title="Workflow connection">
       <div class="dot" id="cu-dot"></div>
-      <span id="cu-lbl" style="font-size:11px;color:var(--mu)">ClickUp</span>
+      <span id="cu-lbl" style="font-size:11px;color:var(--mu)">ClickUp linked</span>
     </div>
-    <div class="pill" id="zp-pill" style="border-color:var(--zp)">
+    <div class="pill" id="zp-pill" style="border-color:var(--zp)" title="Automation active">
       <div class="dot" id="zp-dot"></div>
-      <span id="zp-lbl" style="font-size:11px;color:var(--mu)">Zapier</span>
+      <span id="zp-lbl" style="font-size:11px;color:var(--mu)">Zapier active</span>
     </div>
     <button class="btn bs2 bp" onclick="genDeploy()"><i class="ti ti-download" aria-hidden="true"></i> Download App</button>
   </div>
@@ -207,8 +207,9 @@ textarea{resize:vertical;min-height:55px}
 <div class="sec" id="sec-orders">
   <div class="row bw" style="margin-bottom:1rem">
     <div style="font-size:15px;font-weight:500">Orders</div>
-    <div class="row">
-      <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync Orders</button>
+    <div class="row" style="gap:7px">
+      <button class="btn bgs bs2" onclick="refreshFromSheets()" title="Reload orders from master record"><i class="ti ti-cloud-down" aria-hidden="true"></i> Load from Sheets</button>
+      <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync to Workflow</button>
       <button class="btn bp bs2" onclick="showTab('new',document.querySelector('[data-t=new]'))"><i class="ti ti-plus" aria-hidden="true"></i> New Order</button>
     </div>
   </div>
@@ -301,8 +302,9 @@ textarea{resize:vertical;min-height:55px}
 <div class="sec" id="sec-menu">
   <div class="row bw" style="margin-bottom:1.25rem">
     <div style="font-size:15px;font-weight:500">Menu Items</div>
-    <div class="row">
-      <button class="btn bgs bs2" onclick="syncMenu()"><i class="ti ti-table" aria-hidden="true"></i> Sync from Sheets</button>
+    <div class="row" style="gap:7px;flex-wrap:wrap">
+      <button class="btn bgs bs2" onclick="syncMenu()" title="Pull latest menu from Google Sheets"><i class="ti ti-refresh" aria-hidden="true"></i> Sync from Sheets</button>
+      <button class="btn bgs bs2" onclick="pushMenuToSheets()" title="Push current menu items to Google Sheets"><i class="ti ti-upload" aria-hidden="true"></i> Push to Sheets</button>
       <button class="btn bp" onclick="openMenu()"><i class="ti ti-plus" aria-hidden="true"></i> Quick Add Item</button>
     </div>
   </div>
@@ -350,6 +352,7 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>ZAP 2 — STATUS CHANGED WEBHOOK</label><input id="zap2" value="https://hooks.zapier.com/hooks/catch/20594220/4btfna2/" oninput="CFG.zap2=this.value"></div>
       <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" value="https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/" oninput="CFG.zap3=this.value"></div>
       <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" value="https://hooks.zapier.com/hooks/catch/20594220/4btabe6/" oninput="CFG.zap4=this.value"></div>
+      <div class="fg"><label>ZAP 6 — MENU PUSH TO SHEETS (create separately)</label><input id="zap6" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap6=this.value"></div>
     </div>
     <div style="font-size:11px;font-weight:500;color:var(--zp);margin-bottom:.5rem;margin-top:.625rem">TEST WEBHOOKS</div>
     <div style="font-size:11px;color:var(--mu);margin-bottom:.75rem;line-height:1.6">Use these to send a known payload to each Zap while setting it up in Zapier. In Zapier: click <strong>Test Trigger</strong> first, then click the matching button below, then click <strong>Find new records</strong> in Zapier.</div>
@@ -556,7 +559,9 @@ var CFG={
   zap2:'https://hooks.zapier.com/hooks/catch/20594220/4btfna2/',
   zap3:'https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/',
   zap4:'https://hooks.zapier.com/hooks/catch/20594220/4btabe6/',
+  zap6:'',
   sheetsCSV:'',
+  ordersCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=0&single=true&output=csv',
   cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
   cuListId:'901326954708',
   statusMap:{'New':'Open','Confirmed':'confirmed','In Progress':'cooking','Ready':'ready','Completed':'picked up'},
@@ -706,7 +711,7 @@ function renderKanban(){
     var orders=APP.orders.filter(o=>o.status===st);
     var cards=orders.length?orders.map(o=>{
       var total=ot(o);
-      var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', ');
+      var items=o.items&&o.items.length?o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?(it.qty>1?it.qty+'×':'')+m.name:''}).filter(Boolean).join(', '):(o.itemsText||'');
       var sync=o.cuTaskId?'<span style="color:var(--gn);font-size:10px" title="Synced to ClickUp">✓</span>':CFG.zap1?'<span style="color:var(--mu);font-size:10px" title="Zapier connected">⚡</span>':'';
       return '<div class="oc'+(o.voided?' voided-card':'')+'" onclick="viewOrder(\''+o.id+'\')"><div class="cusync">'+sync+'</div><div class="on2">'+o.name+(o.voided?'<span class="voided-badge">VOIDED</span>':'')+'</div><div class="oi">'+items+'</div><div class="om"><span class="ot">$'+total.toFixed(0)+'</span><span class="od">'+o.pickup+(o.pickupDisplay?' · '+o.pickupDisplay:'')+'</span></div></div>';
     }).join(''):'<div class="empty" style="padding:.375rem">—</div>';
@@ -722,7 +727,7 @@ function viewOrder(id){
   var subtotal=o.subtotal!==undefined?o.subtotal:total;
   var taxAmt=o.taxAmt||0;
   var taxRate=o.taxRate||0;
-  var items=o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'<div class="gr"><span>'+(it.qty>1?it.qty+'× ':'')+m.name+'</span><span>$'+(m.price*it.qty).toFixed(0)+'</span></div>':''}).join('');
+  var items=o.items&&o.items.length?o.items.map(it=>{var m=APP.menu.find(x=>x.id===it.mid);return m?'<div class="gr"><span>'+(it.qty>1?it.qty+'× ':'')+m.name+'</span><span>$'+(m.price*it.qty).toFixed(0)+'</span></div>':''}).join(''):(o.itemsText?'<div class="gr" style="grid-column:1/-1;font-size:12px;color:var(--mu)">'+o.itemsText+'</div>':'');
   var pc=o.payStatus==='Paid in Full'?'bgn':o.payStatus==='Deposit Paid'?'bam':'brd';
   var taxRow=taxRate>0?'<div class="gr" style="font-size:12px"><span style="color:var(--mu)">Tax ('+(taxRate*100).toFixed(2).replace(/\.?0+$/,'')+'%)</span><span style="color:var(--mu)">$'+taxAmt.toFixed(2)+'</span></div>':'';
   var subRow=taxRate>0?'<div class="gr" style="font-size:12px"><span style="color:var(--mu)">Subtotal</span><span style="color:var(--mu)">$'+subtotal.toFixed(2)+'</span></div>':'';
@@ -852,6 +857,24 @@ async function submitOrder(){
 function formatTime12h(t){if(!t)return'';var p=t.split(':');var h=parseInt(p[0]);var m=p[1];var ampm=h>=12?'PM':'AM';var h12=h%12||12;return h12+':'+m+' '+ampm}
 function resetForm(){['on','op','oe','od','onotes'].forEach(id=>{document.getElementById(id).value=''});var ot=document.getElementById('otime');if(ot)ot.value='';renderPicker()}
 
+async function pushMenuToSheets(){
+  if(!CFG.zap6){toast('Set up Zap 6 (Menu Push) in Settings → Zapier section first');return}
+  if(!APP.menu.length){toast('No menu items to push');return}
+  toast('Pushing '+APP.menu.length+' items to Sheets…');
+  var payload={
+    event:'menu.push',
+    pushed_at:new Date().toISOString(),
+    item_count:APP.menu.length,
+    items:APP.menu.map(m=>({
+      name:m.name,type:m.type,price:m.price,cost:m.cost,
+      ingredients:m.ing,servings:m.serv,available:m.avail,
+      description:m.desc
+    }))
+  };
+  var ok=await fireZap(CFG.zap6,payload);
+  if(ok!==false)toast('Menu pushed to Sheets — '+APP.menu.length+' items sent');
+  else toast('Could not reach Sheets — check Zap 6 URL in Settings');
+}
 async function syncMenu(){
   var url=document.getElementById('sheets-csv').value||CFG.sheetsCSV;
   if(!url){toast('Paste the Google Sheets CSV URL in Settings first');return}
@@ -1263,6 +1286,79 @@ async function syncVoidToClickUp(o){
   }catch(e){}
 }
 
+// ── ORDERS FROM SHEETS (multi-device sync) ───────────────────────
+function parseCSVLine(line){
+  var result=[];var cur='';var inQ=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+async function loadOrdersFromSheets(){
+  if(!CFG.ordersCSV)return;
+  try{
+    var r=await fetch(CFG.ordersCSV+'&t='+Date.now());
+    if(!r.ok)return;
+    var csv=await r.text();
+    var lines=csv.trim().split('\n');
+    if(lines.length<2){logIt('Orders sheet is empty');return}
+    var headers=parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+    var col={};headers.forEach((h,i)=>col[h]=i);
+    var loaded=0,skipped=0;
+    lines.slice(1).forEach(function(line){
+      if(!line.trim())return;
+      var cols=parseCSVLine(line);
+      var orderId=(cols[col['order id']]||'').trim();
+      var name=(cols[col['name']]||'').trim();
+      var total=parseFloat(cols[col['total']]||'0')||0;
+      if(!name||!orderId)return;
+      // Deduplicate — skip if already loaded by same orderId
+      var exists=APP.orders.find(function(x){return (x.orderId||x.id||'').toUpperCase()===orderId.toUpperCase();});
+      if(exists){skipped++;return}
+      var pickup=(cols[col['pickup date']]||'').replace(/\//g,'-');
+      // Normalise date format from Sheets (MM-DD-YYYY → YYYY-MM-DD)
+      if(/^\d{2}-\d{2}-\d{4}$/.test(pickup)){var p=pickup.split('-');pickup=p[2]+'-'+p[0]+'-'+p[1]}
+      var o={
+        id:orderId.toLowerCase(),
+        orderId:orderId,
+        cuTaskId:cols[col['clickup task id']]||null,
+        name:name,
+        phone:cols[col['phone']]||'',
+        email:cols[col['email']]||'',
+        pickup:pickup,
+        pickupDisplay:'',pickupTime:'',
+        status:normStatus(cols[col['status']]||'New'),
+        payMethod:cols[col['payment method']]||'',
+        payStatus:cols[col['pay status']]||'Unpaid',
+        subtotal:parseFloat(cols[col['subtotal']])||total,
+        taxRate:0,
+        taxAmt:parseFloat(cols[col['tax amount']])||0,
+        total:total,
+        notes:cols[col['notes']]||'',
+        items:[],
+        itemsText:cols[col['items']]||'',
+        created:cols[col['created']]||'',
+        fromSheets:true,voided:false
+      };
+      APP.orders.push(o);loaded++;
+    });
+    logIt('Loaded '+loaded+' orders from Sheets'+(skipped?' ('+skipped+' already in session)':''));
+    renderDash();
+    if(typeof renderKanban==='function')renderKanban();
+    if(loaded>0)toast(loaded+' orders loaded from master record');
+  }catch(e){console.log('Sheets orders load error:',e.message)}
+}
+async function refreshFromSheets(){
+  // Manual refresh — clears session orders then reloads from Sheets
+  var existing=APP.orders.filter(function(o){return !o.fromSheets});
+  APP.orders=existing;// keep any locally-created orders not yet in Sheets
+  await loadOrdersFromSheets();
+}
+
 function initSample(){
   APP.menu=[
     {id:uid(),name:'Oxtail Platter (Half Pan)',desc:'Slow-braised, serves 4-6',type:'Platter',avail:'Always',price:175,cost:60,ing:'oxtail,butter beans,scotch bonnet,allspice,thyme,garlic,onion',serv:5,prep:4},
@@ -1296,7 +1392,7 @@ function initUI(){
     'bizname':CFG.bizName,'gh-url':CFG.ghURL,
     'adm-phone':CFG.adminPhone,'adm-email':CFG.adminEmail,
     'stripe-key':CFG.stripePublicKey,
-    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4,
+    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4,'zap6':CFG.zap6,
     'emp-csv':CFG.employeesCSV
   };
   Object.entries(fields).forEach(([id,val])=>{var el=document.getElementById(id);if(el&&val)el.value=val});
@@ -1307,8 +1403,8 @@ function initUI(){
     .then(r=>r.json()).then(d=>{
       if(d.user){
         document.getElementById('cu-dot').className='dot ok';
-        document.getElementById('cu-lbl').textContent=d.user.username;
-        document.getElementById('cu-status').textContent='Connected as '+d.user.username;
+        // Show connected state in pill without revealing account name
+        document.getElementById('cu-status')&&(document.getElementById('cu-status').textContent='Connected');
       }
     }).catch(()=>{});
     // Also auto-fetch custom field map so fields populate on every new order
@@ -1329,6 +1425,8 @@ function initUI(){
     }
   }
   checkAuth();
+  // Load current orders from master sheet on every page open
+  loadOrdersFromSheets();
 }
 function testAuth(){
   sessionStorage.removeItem('crk_employee');
