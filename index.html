@@ -377,7 +377,7 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" value="https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/" oninput="CFG.zap3=this.value"></div>
       <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" value="https://hooks.zapier.com/hooks/catch/20594220/4btabe6/" oninput="CFG.zap4=this.value"></div>
       <div class="fg"><label>ZAP 6 — MENU PUSH TO SHEETS (create separately)</label><input id="zap6" value="https://hooks.zapier.com/hooks/catch/20594220/4bmnre4/" oninput="CFG.zap6=this.value"></div>
-      <div class="fg"><label>ZAP 8 — TAGS PUSH TO SHEETS (create separately)</label><input id="zap8" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap8=this.value"></div>
+      <div class="fg"><label>ZAP 8 — TAGS PUSH TO SHEETS (create separately)</label><input id="zap8" value="https://hooks.zapier.com/hooks/catch/20594220/4b17y11/" oninput="CFG.zap8=this.value"></div>
     </div>
     <div style="font-size:11px;font-weight:500;color:var(--zp);margin-bottom:.5rem;margin-top:.625rem">TEST WEBHOOKS</div>
     <div style="font-size:11px;color:var(--mu);margin-bottom:.75rem;line-height:1.6">Use these to send a known payload to each Zap while setting it up in Zapier. In Zapier: click <strong>Test Trigger</strong> first, then click the matching button below, then click <strong>Find new records</strong> in Zapier.</div>
@@ -394,6 +394,7 @@ textarea{resize:vertical;min-height:55px}
     <div class="help">Publish the Menu tab as CSV (File → Share → Publish to web → Menu tab → CSV) and paste the URL below. The app reads menu items from it on sync.<br>Zapier writes all order + customer data to Sheets — you don't need to enter any Sheets API key here.</div>
     <div class="fg2">
       <div class="fg" style="grid-column:1/-1"><label>MENU TAB CSV URL (from Publish to web)</label><input id="sheets-csv" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=0&single=true&output=csv" oninput="CFG.sheetsCSV=this.value"></div>
+      <div class="fg" style="grid-column:1/-1"><label>TAGS TAB CSV URL (from Publish to web → Tags tab)</label><input id="tags-csv" value="https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=558976844&single=true&output=csv" oninput="CFG.tagsCSV=this.value"></div>
     </div>
     <div class="row" style="margin-top:.375rem;gap:7px">
       <span id="sheets-status" style="font-size:11px;color:var(--mu)">Menu auto-loads from Sheets on page open</span>
@@ -622,14 +623,15 @@ var CFG={
   zap3:'https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/',
   zap4:'https://hooks.zapier.com/hooks/catch/20594220/4btabe6/',
   zap6:'https://hooks.zapier.com/hooks/catch/20594220/4bmnre4/',
+  zap8:'https://hooks.zapier.com/hooks/catch/20594220/4b17y11/',
   sheetsCSV:'',
   ordersCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=0&single=true&output=csv',
   customersCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=363906885&single=true&output=csv',
   dropdownsCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=1796801270&single=true&output=csv',
+  tagsCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=558976844&single=true&output=csv',
   cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
   cuListId:'901326954708',
   cuCustomerListId:'901326954728',
-  zap8:'',
   statusMap:{'New':'Open','Confirmed':'confirmed','In Progress':'cooking','Ready':'ready','Completed':'picked up'},
   employeesCSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSHXyqfLSuRIdOGBfqBQLd80D_9dP5zpgw2U3OSoGBvvLK_qnxjP-Ae1yfD8Fx3dUIv9nDH7UMVZ6jA/pub?gid=454654839&single=true&output=csv',
   autoSync:true,
@@ -1568,24 +1570,34 @@ function addTagFromInput(phone){
   addTag(phone,tag);hideTagSug();
 }
 
-// ── DROPDOWNS FROM SHEETS ─────────────────────────────────────────
+// ── DROPDOWNS FROM SHEETS (Payment Method / Pay Status indexes only) ─
 async function loadDropdownsFromSheets(){
   if(!CFG.dropdownsCSV)return;
   try{
     var r=await fetch(CFG.dropdownsCSV+'&t='+Date.now());if(!r.ok)return;
     var csv=await r.text();var lines=csv.trim().split('\n');if(lines.length<2)return;
-    var tags=[];
-    lines.slice(1).forEach(function(line){
-      var cols=parseCSVLine(line);
-      var field=(cols[0]||'').trim().toLowerCase();
-      var label=(cols[1]||'').trim();
-      if(field==='customer tag'&&label)tags.push(label);
-    });
-    // Merge with any tags already in APP.masterTags
-    tags.forEach(t=>{if(!APP.masterTags.includes(t))APP.masterTags.push(t)});
-    logIt('Loaded '+tags.length+' master tags from Sheets');
-    renderTagManager();
+    // Only loads Payment Method and Pay Status indexes — Customer Tags live in Tags tab
+    logIt('Dropdowns reference loaded');
   }catch(e){console.log('Dropdowns load error:',e.message)}
+}
+
+// ── TAGS FROM SHEETS (dedicated Tags tab) ────────────────────────
+async function loadTagsFromSheets(){
+  if(!CFG.tagsCSV)return;
+  try{
+    var r=await fetch(CFG.tagsCSV+'&t='+Date.now());if(!r.ok)return;
+    var csv=await r.text();var lines=csv.trim().split('\n');if(lines.length<2)return;
+    var headers=parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+    var col={};headers.forEach((h,i)=>col[h]=i);
+    var loaded=0;
+    lines.slice(1).forEach(function(line){
+      if(!line.trim())return;
+      var cols=parseCSVLine(line);
+      var tag=(cols[col['tag name']]||cols[col['tag']]||cols[0]||'').trim();
+      if(tag&&!APP.masterTags.includes(tag)){APP.masterTags.push(tag);loaded++;}
+    });
+    if(loaded>0){logIt('Loaded '+loaded+' tags from Sheets');renderTagManager();}
+  }catch(e){console.log('Tags load error:',e.message)}
 }
 
 // ── TAG MANAGER (Settings) ────────────────────────────────────────
@@ -1607,10 +1619,14 @@ function deleteMasterTag(idx){
   APP.masterTags.splice(idx,1);renderTagManager();toast('"'+tag+'" removed from master list');
 }
 async function pushTagsToSheets(){
-  if(!CFG.zap8){toast('Set Zap 8 URL in Settings → Zapier section first');return}
-  var payload={event:'tags.push',tags:APP.masterTags.map((t,i)=>({field:'Customer Tag',label:t,index:i}))};
+  if(!CFG.zap8){toast('Zap 8 URL not configured — check Settings → Zapier section');return}
+  if(!APP.masterTags.length){toast('No tags to push');return}
+  var now=new Date().toISOString().split('T')[0];
+  var payload={event:'tags.push',pushed_at:now,tag_count:APP.masterTags.length,
+    tags:APP.masterTags.map(t=>({'Tag Name':t,'Created Date':now}))
+  };
   var ok=await fireZap(CFG.zap8,payload);
-  if(ok!==false)toast('Master tags pushed to Sheets ('+APP.masterTags.length+' tags)');
+  if(ok!==false)toast('Tags pushed to Sheets ('+APP.masterTags.length+' tags)');
   else toast('Could not reach Zapier — check Zap 8 URL');
 }
 
@@ -1708,6 +1724,7 @@ function initUI(){
   loadMenuFromSheets();
   loadCustomersFromSheets();
   loadDropdownsFromSheets();
+  loadTagsFromSheets();
 }
 function testAuth(){
   sessionStorage.removeItem('crk_employee');
