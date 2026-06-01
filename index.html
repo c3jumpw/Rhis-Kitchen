@@ -127,6 +127,27 @@ textarea{resize:vertical;min-height:55px}
 .oc.voided-card{opacity:.45}
 .oc.voided-card .on2{text-decoration:line-through}
 .voided-badge{font-size:10px;background:var(--rd2);color:var(--rd);padding:1px 6px;border-radius:4px;font-weight:500;margin-left:6px}
+/* Customer profile */
+.cust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem}
+.cust-card{background:var(--card);border:0.5px solid var(--bd2);border-radius:var(--border-radius-lg);padding:.875rem 1rem;cursor:pointer;transition:border-color .12s}
+.cust-card:hover{border-color:var(--am)}
+.cust-av{width:38px;height:38px;border-radius:50%;background:var(--am2);color:var(--am);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.cust-name{font-size:13px;font-weight:500;color:var(--text)}
+.cust-sub{font-size:11px;color:var(--mu)}
+.tag-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;margin:2px;cursor:pointer;border:0.5px solid var(--bd2);background:var(--bg2);color:var(--mu)}
+.tag-chip.active{background:var(--am2);border-color:var(--am);color:var(--am)}
+.tag-chip.removable::after{content:'×';margin-left:3px;opacity:.7}
+.tag-filter-bar{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;padding:.625rem .75rem;background:var(--bg2);border-radius:var(--border-radius-md);align-items:center}
+.prof-stat{background:var(--bg2);border-radius:var(--border-radius-md);padding:.625rem .75rem;text-align:center;flex:1}
+.prof-stat-val{font-size:18px;font-weight:500;color:var(--text)}
+.prof-stat-lbl{font-size:10px;color:var(--mu);margin-top:2px}
+.msg-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--bd2);text-decoration:none;color:var(--text);background:var(--bg2)}
+.msg-btn:hover{background:var(--card);border-color:var(--am)}
+.tag-sug-drop{position:absolute;top:100%;left:0;right:0;background:var(--card);border:0.5px solid var(--bd2);border-radius:8px;z-index:600;max-height:160px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-top:2px;display:none}
+.tag-sug-item{padding:.45rem .75rem;cursor:pointer;font-size:12px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:6px}
+.tag-sug-item:last-child{border-bottom:none}
+.tag-sug-item:hover{background:var(--bg2)}
+.tag-sug-new{color:var(--am);font-weight:500}
 </style>
 
 <div>
@@ -208,7 +229,6 @@ textarea{resize:vertical;min-height:55px}
   <div class="row bw" style="margin-bottom:1rem">
     <div style="font-size:15px;font-weight:500">Orders</div>
     <div class="row" style="gap:7px">
-      <button class="btn bgs bs2" onclick="refreshFromSheets()" title="Reload orders from master record"><i class="ti ti-cloud-down" aria-hidden="true"></i> Load from Sheets</button>
       <button class="btn bzp bs2" onclick="syncAllCU()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync to Workflow</button>
       <button class="btn bp bs2" onclick="showTab('new',document.querySelector('[data-t=new]'))"><i class="ti ti-plus" aria-hidden="true"></i> New Order</button>
     </div>
@@ -303,8 +323,7 @@ textarea{resize:vertical;min-height:55px}
   <div class="row bw" style="margin-bottom:1.25rem">
     <div style="font-size:15px;font-weight:500">Menu Items</div>
     <div class="row" style="gap:7px;flex-wrap:wrap">
-      <button class="btn bgs bs2" onclick="syncMenu()" title="Pull latest menu from Google Sheets"><i class="ti ti-refresh" aria-hidden="true"></i> Sync from Sheets</button>
-      <button class="btn bgs bs2" onclick="pushMenuToSheets()" title="Push current menu items to Google Sheets"><i class="ti ti-upload" aria-hidden="true"></i> Push to Sheets</button>
+      <button class="btn bgs bs2" onclick="pushMenuToSheets()" title="Save current menu to master spreadsheet"><i class="ti ti-upload" aria-hidden="true"></i> Push to Sheets</button>
       <button class="btn bp" onclick="openMenu()"><i class="ti ti-plus" aria-hidden="true"></i> Quick Add Item</button>
     </div>
   </div>
@@ -314,12 +333,17 @@ textarea{resize:vertical;min-height:55px}
 <div class="sec" id="sec-customers">
   <div class="row bw" style="margin-bottom:1rem">
     <div style="font-size:15px;font-weight:500">Customers</div>
-    <div class="row">
-      <input style="width:180px" placeholder="Search…" oninput="renderCustomers(this.value)">
+    <div class="row" style="gap:7px">
+      <input id="cust-search" style="width:160px" placeholder="Search name, phone…" oninput="renderCustomers()">
       <button class="btn bs2" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
     </div>
   </div>
-  <div class="card"><div id="clist"></div></div>
+  <div class="tag-filter-bar" id="tag-filter-bar">
+    <span style="font-size:10px;font-weight:500;color:var(--mu);margin-right:4px;letter-spacing:.05em">FILTER:</span>
+    <span class="tag-chip active" onclick="filterByTag('all',this)">All</span>
+    <span id="tag-filter-chips"></span>
+  </div>
+  <div class="cust-grid" id="clist"></div>
 </div>
 
 <div class="sec" id="sec-grocery">
@@ -353,6 +377,7 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>ZAP 3 — BLAST ANNOUNCEMENT WEBHOOK</label><input id="zap3" value="https://hooks.zapier.com/hooks/catch/20594220/4btfvwf/" oninput="CFG.zap3=this.value"></div>
       <div class="fg"><label>ZAP 4 — CLICKUP REVERSE SYNC (optional)</label><input id="zap4" value="https://hooks.zapier.com/hooks/catch/20594220/4btabe6/" oninput="CFG.zap4=this.value"></div>
       <div class="fg"><label>ZAP 6 — MENU PUSH TO SHEETS (create separately)</label><input id="zap6" value="https://hooks.zapier.com/hooks/catch/20594220/4bmnre4/" oninput="CFG.zap6=this.value"></div>
+      <div class="fg"><label>ZAP 8 — TAGS PUSH TO SHEETS (create separately)</label><input id="zap8" placeholder="https://hooks.zapier.com/hooks/catch/…" oninput="CFG.zap8=this.value"></div>
     </div>
     <div style="font-size:11px;font-weight:500;color:var(--zp);margin-bottom:.5rem;margin-top:.625rem">TEST WEBHOOKS</div>
     <div style="font-size:11px;color:var(--mu);margin-bottom:.75rem;line-height:1.6">Use these to send a known payload to each Zap while setting it up in Zapier. In Zapier: click <strong>Test Trigger</strong> first, then click the matching button below, then click <strong>Find new records</strong> in Zapier.</div>
@@ -371,8 +396,7 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg" style="grid-column:1/-1"><label>MENU TAB CSV URL (from Publish to web)</label><input id="sheets-csv" placeholder="https://docs.google.com/spreadsheets/d/…/pub?gid=0&single=true&output=csv" oninput="CFG.sheetsCSV=this.value"></div>
     </div>
     <div class="row" style="margin-top:.375rem;gap:7px">
-      <button class="btn bgs bs2" onclick="syncMenu()"><i class="ti ti-refresh" aria-hidden="true"></i> Sync Menu from Sheets</button>
-      <span id="sheets-status" style="font-size:11px;color:var(--mu)"></span>
+      <span id="sheets-status" style="font-size:11px;color:var(--mu)">Menu auto-loads from Sheets on page open</span>
     </div>
   </div>
 
@@ -508,6 +532,32 @@ textarea{resize:vertical;min-height:55px}
       <button class="btn bs2 bd2" onclick="clearData()"><i class="ti ti-trash" aria-hidden="true"></i> Clear All Orders</button>
     </div>
   </div>
+
+  <div class="card" style="border-color:var(--pu);border-width:1px">
+    <div class="ct"><div class="ctl" style="color:var(--pu)"><i class="ti ti-shield-lock" aria-hidden="true"></i> TECHNICAL ADMIN — Data Sync</div></div>
+    <div class="help" style="margin-bottom:.75rem">These tools bypass the normal workflow. Only use if you know what you're doing. All changes here affect session data only — Sheets and ClickUp remain the master records.</div>
+    <div class="row" style="gap:7px;flex-wrap:wrap">
+      <button class="btn bs2" onclick="syncMenu()" style="border-color:var(--pu);color:var(--pu)"><i class="ti ti-refresh" aria-hidden="true"></i> Force Sync Menu from Sheets</button>
+      <button class="btn bs2" onclick="refreshFromSheets()" style="border-color:var(--pu);color:var(--pu)"><i class="ti ti-cloud-down" aria-hidden="true"></i> Force Load Orders from Sheets</button>
+      <button class="btn bs2" onclick="loadCustomersFromSheets()" style="border-color:var(--pu);color:var(--pu)"><i class="ti ti-users" aria-hidden="true"></i> Force Load Customers from Sheets</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct"><div class="ctl"><i class="ti ti-tags" aria-hidden="true"></i> Customer Segments & Tags</div></div>
+    <div class="help" style="margin-bottom:.75rem">Manage the master tag list used across all customers. Tags here appear as suggestions when tagging customers in their profile. Changes here are session-only until you push to Sheets.</div>
+    <div id="tag-manager-list" style="margin-bottom:.875rem"></div>
+    <div style="display:flex;gap:7px;margin-bottom:.625rem">
+      <input id="master-tag-inp" placeholder="New tag (e.g. Event Catering, Church Group…)" style="flex:1;font-size:12px;padding:6px 9px" onkeydown="if(event.key==='Enter')addMasterTagFromSettings()">
+      <button class="btn bp" onclick="addMasterTagFromSettings()"><i class="ti ti-plus" aria-hidden="true"></i> Add Tag</button>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <button class="btn bgs bs2" onclick="pushTagsToSheets()"><i class="ti ti-upload" aria-hidden="true"></i> Push Tags to Sheets</button>
+      <span style="font-size:11px;color:var(--mu)">Saves master tag list to the Dropdowns tab via Zap 8</span>
+    </div>
+  </div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -548,6 +598,18 @@ textarea{resize:vertical;min-height:55px}
 
 <div id="toast" class="toast"></div>
 
+<!-- Customer Profile Modal -->
+<div class="modal" id="mo-customer">
+  <div class="mc" style="max-width:520px">
+    <div class="mh"><span id="cprof-title" style="font-size:16px;font-weight:500">Customer Profile</span><button class="mx" onclick="closeCustomer()">×</button></div>
+    <div id="cprof-body" style="max-height:70vh;overflow-y:auto"></div>
+    <div class="mf">
+      <button class="btn bs2 bd2" onclick="deleteCustomer()"><i class="ti ti-trash" aria-hidden="true"></i> Remove</button>
+      <button class="btn" onclick="closeCustomer()">Done</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var STATUSES=['New','Confirmed','In Progress','Ready','Completed'];
 // Backward compat: treat legacy 'Picked Up' as 'Completed'
@@ -562,8 +624,12 @@ var CFG={
   zap6:'https://hooks.zapier.com/hooks/catch/20594220/4bmnre4/',
   sheetsCSV:'',
   ordersCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=0&single=true&output=csv',
+  customersCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=363906885&single=true&output=csv',
+  dropdownsCSV:'https://docs.google.com/spreadsheets/d/1f26CQ0eeXgHpun5TR2gxYhtzv9Bl9kN_hkqz1QH6bRk/pub?gid=1796801270&single=true&output=csv',
   cuToken:'pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8',
   cuListId:'901326954708',
+  cuCustomerListId:'901326954728',
+  zap8:'',
   statusMap:{'New':'Open','Confirmed':'confirmed','In Progress':'cooking','Ready':'ready','Completed':'picked up'},
   employeesCSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vSHXyqfLSuRIdOGBfqBQLd80D_9dP5zpgw2U3OSoGBvvLK_qnxjP-Ae1yfD8Fx3dUIv9nDH7UMVZ6jA/pub?gid=454654839&single=true&output=csv',
   autoSync:true,
@@ -575,7 +641,7 @@ var CFG={
   taxRate:0,
   pin:''
 };
-var APP={orders:[],menu:[],webhooks:[]};
+var APP={orders:[],menu:[],webhooks:[],customers:[],masterTags:[]};
 var LOG=[];
 var editMenuIdx=-1,viewOID=null,iqtys={};
 
@@ -584,7 +650,7 @@ function toast(m,dur){var t=document.getElementById('toast');t.textContent=m;t.c
 function logIt(m){LOG.unshift({m,t:new Date()});if(LOG.length>30)LOG.pop()}
 function timeAgo(d){var s=Math.floor((Date.now()-d)/1000);if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
 function ot(o){if(o.total!==undefined)return o.total;return o.items.reduce((s,it)=>{var m=APP.menu.find(x=>x.id===it.mid);return s+(m?m.price*it.qty:0)},0)}
-function customers(){var map={};APP.orders.forEach(o=>{if(!map[o.phone])map[o.phone]={name:o.name,phone:o.phone,email:o.email||'',orders:0,spent:0};map[o.phone].orders++;map[o.phone].spent+=ot(o)});return Object.values(map)}
+// customers() is now defined in the CUSTOMER SYSTEM block below
 
 function showTab(id,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
@@ -594,7 +660,7 @@ function showTab(id,el){
   if(id==='dash')renderDash();
   if(id==='orders')renderKanban();
   if(id==='menu')renderMenu();
-  if(id==='customers')renderCustomers('');
+  if(id==='customers'){renderCustomers();}
   if(id==='grocery')renderGrocery();
   if(id==='new')renderPicker();
 }
@@ -932,13 +998,7 @@ function saveMI(){
   closeMenu();renderMenu();toast(editMenuIdx>=0?'"'+m.name+'" updated':'Item added');
 }
 
-function renderCustomers(q){
-  q=(q||'').toLowerCase();
-  var list=customers().filter(c=>!q||c.name.toLowerCase().includes(q)||c.phone.includes(q));
-  var el=document.getElementById('clist');
-  if(!list.length){el.innerHTML='<div class="empty">No customers yet — orders build your database automatically.</div>';return}
-  el.innerHTML=list.map(c=>{var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();return'<div class="cr"><div class="av">'+ini+'</div><div class="ci"><div class="cn2">'+c.name+'</div><div class="cc">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div class="css2"><div class="co">'+c.orders+' order'+(c.orders!==1?'s':'')+'</div><div class="csp">$'+c.spent.toFixed(0)+' total</div></div></div>'}).join('');
-}
+// renderCustomers() is now defined in the CUSTOMER SYSTEM block below
 
 function renderGrocery(){
   var all=document.getElementById('ga').checked;var date=document.getElementById('gd').value;
@@ -1359,6 +1419,224 @@ async function refreshFromSheets(){
   await loadOrdersFromSheets();
 }
 
+// ── CUSTOMER SYSTEM ──────────────────────────────────────────────
+var _custFilter='all';var _viewCustId=null;
+function customers(){
+  var map={};
+  APP.customers.forEach(c=>{map[c.phone||c.name]={...c}});
+  APP.orders.forEach(o=>{
+    var key=o.phone||o.name;
+    if(!map[key])map[key]={id:uid(),name:o.name,phone:o.phone,email:o.email||'',tags:[],notes:'',created:o.created||''};
+    var c=map[key];if(!c.email&&o.email)c.email=o.email;
+  });
+  return Object.values(map);
+}
+function custOrders(cust){return APP.orders.filter(o=>o.phone===cust.phone||(o.name===cust.name&&!cust.phone))}
+function allTags(){var t=new Set();customers().forEach(c=>(c.tags||[]).forEach(tag=>t.add(tag)));return Array.from(t).sort()}
+function filterByTag(tag,el){_custFilter=tag;document.querySelectorAll('.tag-chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');renderCustomers()}
+function renderTagFilterBar(){
+  var tags=allTags();var el=document.getElementById('tag-filter-chips');if(!el)return;
+  el.innerHTML=tags.map(t=>'<span class="tag-chip'+(t===_custFilter?' active':'')+'" onclick="filterByTag(\''+t+'\',this)">'+t+'</span>').join('');
+}
+function renderCustomers(){
+  var q=((document.getElementById('cust-search')||{}).value||'').toLowerCase();
+  renderTagFilterBar();
+  var list=customers().filter(c=>{
+    var mQ=!q||c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.email||'').toLowerCase().includes(q);
+    var mT=_custFilter==='all'||(c.tags||[]).includes(_custFilter);
+    return mQ&&mT;
+  });
+  var el=document.getElementById('clist');
+  if(!list.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">No customers yet — orders build your database automatically.</div>';return}
+  el.innerHTML=list.map(c=>{
+    var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
+    var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
+    return'<div class="cust-card" onclick="openCustomer(\''+c.phone+'\')"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
+  }).join('');
+}
+function openCustomer(phone){
+  var c=customers().find(x=>x.phone===phone||x.name===phone);if(!c)return;
+  _viewCustId=phone;
+  var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
+  var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  var lastOrder=cos.length?cos[0].pickup:'—';
+  var tagHtml=(c.tags||[]).map((t,i)=>'<span class="tag-chip removable" onclick="removeTag(\''+phone+'\','+i+')">'+t+'</span>').join('');
+  document.getElementById('cprof-title').textContent=c.name;
+  document.getElementById('cprof-body').innerHTML=
+    '<div style="padding:.875rem 1rem">'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem"><div class="cust-av" style="width:48px;height:48px;font-size:18px">'+ini+'</div>'
+    +'<div><div style="font-size:15px;font-weight:500">'+c.name+'</div><div style="font-size:12px;color:var(--mu)">Customer since '+(c.created?c.created.split('T')[0]:lastOrder)+'</div></div></div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:1rem">'
+    +(c.email?'<a href="mailto:'+c.email+'" class="msg-btn"><i class="ti ti-mail" aria-hidden="true"></i> Email</a>':'<span class="msg-btn" style="opacity:.35;pointer-events:none"><i class="ti ti-mail" aria-hidden="true"></i> Email</span>')
+    +'<a href="sms:'+c.phone+'" class="msg-btn"><i class="ti ti-message" aria-hidden="true"></i> Text</a>'
+    +'<a href="tel:'+c.phone+'" class="msg-btn"><i class="ti ti-phone" aria-hidden="true"></i> Call</a>'
+    +'</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:1rem">'
+    +'<div class="prof-stat"><div class="prof-stat-val">'+cos.length+'</div><div class="prof-stat-lbl">ORDERS</div></div>'
+    +'<div class="prof-stat"><div class="prof-stat-val">$'+spent.toFixed(0)+'</div><div class="prof-stat-lbl">TOTAL SPENT</div></div>'
+    +'<div class="prof-stat"><div class="prof-stat-val">'+lastOrder+'</div><div class="prof-stat-lbl">LAST ORDER</div></div>'
+    +'</div>'
+    +'<div style="margin-bottom:1rem"><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.5rem">SEGMENTS / TAGS</div>'
+    +'<div id="prof-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.5rem">'+tagHtml+'</div>'
+    +'<div style="position:relative"><input id="new-tag-inp" placeholder="Type to search or add tag…" style="width:100%;font-size:12px;padding:5px 9px" oninput="showTagSuggestions(\''+phone+'\')" onkeydown="navTagSug(event,\''+phone+'\')" onblur="setTimeout(hideTagSug,160)" autocomplete="off">'
+    +'<div id="tag-sug-drop" class="tag-sug-drop"></div></div>'
+    +'<button class="btn bs2" onclick="addTagFromInput(\''+phone+'\')" style="font-size:11px;margin-top:5px">+ Add Tag</button></div>'
+    +'<div><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.5rem">ORDER HISTORY</div>'
+    +(cos.length?cos.map(o=>'<div class="order-hist-row"><span style="font-weight:500">'+o.pickup+'</span><span style="color:var(--mu);flex:1;margin:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((o.itemsText||'').split('\\n')[0]||'').replace(/- /,'').slice(0,28)+'</span><span class="badge">'+normStatus(o.status)+'</span><span style="font-weight:500;color:var(--am);margin-left:7px">$'+ot(o).toFixed(0)+'</span></div>').join(''):'<div style="font-size:12px;color:var(--mu)">No orders in current session. Load from Sheets to see history.</div>')
+    +'</div></div>';
+  document.getElementById('mo-customer').classList.add('open');
+}
+function closeCustomer(){document.getElementById('mo-customer').classList.remove('open');_viewCustId=null}
+function addTag(phone){
+  var inp=document.getElementById('new-tag-inp');var tag=(inp?inp.value.trim():'');if(!tag)return;
+  var c=APP.customers.find(x=>x.phone===phone);
+  if(!c){c={id:uid(),name:'',phone:phone,email:'',tags:[],notes:'',created:''};APP.customers.push(c)}
+  if(!c.tags)c.tags=[];if(!c.tags.includes(tag))c.tags.push(tag);
+  openCustomer(phone);renderCustomers();
+}
+function removeTag(phone,idx){
+  var c=APP.customers.find(x=>x.phone===phone);if(!c||!c.tags)return;
+  c.tags.splice(idx,1);openCustomer(phone);renderCustomers();
+}
+function deleteCustomer(){
+  if(!_viewCustId)return;
+  if(!confirm('Remove this customer from the session?\n\nThis does not change Google Sheets.'))return;
+  APP.customers=APP.customers.filter(x=>x.phone!==_viewCustId);
+  closeCustomer();renderCustomers();toast('Customer removed from session');
+}
+
+// ── CUSTOMERS FROM SHEETS ─────────────────────────────────────────
+async function loadCustomersFromSheets(){
+  if(!CFG.customersCSV)return;
+  try{
+    var r=await fetch(CFG.customersCSV+'&t='+Date.now());if(!r.ok)return;
+    var csv=await r.text();var lines=csv.trim().split('\n');if(lines.length<2)return;
+    var headers=parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+    var col={};headers.forEach((h,i)=>col[h]=i);
+    var loaded=0;
+    lines.slice(1).forEach(function(line){
+      if(!line.trim())return;
+      var cols=parseCSVLine(line);
+      var name=(cols[col['name']]||'').trim();var phone=(cols[col['phone']]||'').trim();
+      if(!name&&!phone)return;
+      var exists=APP.customers.find(x=>x.phone===phone||(x.name===name&&!phone));
+      if(exists)return;
+      var tags=[];var rawTags=(cols[col['tags']]||'').trim();
+      if(rawTags)tags=rawTags.split(',').map(t=>t.trim()).filter(Boolean);
+      APP.customers.push({id:uid(),name,phone,email:(cols[col['email']]||'').trim(),tags,notes:(cols[col['notes']]||'').trim(),created:(cols[col['created']]||'').trim(),totalOrders:parseInt(cols[col['total orders']])||0,totalSpent:parseFloat(cols[col['total spent']])||0,lastOrderDate:(cols[col['last order date']]||'').trim()});
+      loaded++;
+    });
+    if(loaded>0){logIt('Loaded '+loaded+' customers from Sheets');renderCustomers&&renderCustomers();}
+  }catch(e){console.log('Customers load error:',e.message)}
+}
+
+// ── TAG AUTOCOMPLETE ─────────────────────────────────────────────
+function showTagSuggestions(phone){
+  var inp=document.getElementById('new-tag-inp');
+  var drop=document.getElementById('tag-sug-drop');
+  if(!inp||!drop)return;
+  var val=inp.value.trim().toLowerCase();
+  var c=customers().find(x=>x.phone===phone||x.name===phone);
+  var existing=(c&&c.tags)||[];
+  var suggestions=APP.masterTags.filter(t=>(!val||t.toLowerCase().includes(val))&&!existing.includes(t));
+  var html=suggestions.slice(0,8).map(t=>'<div class="tag-sug-item" onmousedown="pickTag(\''+phone+'\',\''+t+'\')"><i class="ti ti-tag" style="font-size:11px;color:var(--mu)" aria-hidden="true"></i>'+t+'</div>').join('');
+  if(val&&!APP.masterTags.some(t=>t.toLowerCase()===val)){
+    html+='<div class="tag-sug-item tag-sug-new" onmousedown="addNewMasterTag(\''+phone+'\',\''+inp.value.trim()+'\')"><i class="ti ti-plus" style="font-size:11px" aria-hidden="true"></i>Create new tag: <strong>'+inp.value.trim()+'</strong></div>';
+  }
+  drop.innerHTML=html||'<div class="tag-sug-item" style="color:var(--mu)">No matching tags</div>';
+  drop.style.display=html?'block':'none';
+}
+function pickTag(phone,tag){
+  var inp=document.getElementById('new-tag-inp');if(inp)inp.value='';
+  addTag(phone,tag);hideTagSug();
+}
+function addNewMasterTag(phone,tag){
+  if(!APP.masterTags.includes(tag))APP.masterTags.push(tag);
+  addTag(phone,tag);hideTagSug();
+  renderTagManager();
+}
+function hideTagSug(){var d=document.getElementById('tag-sug-drop');if(d)d.style.display='none'}
+function navTagSug(e,phone){
+  if(e.key==='Enter'){var inp=document.getElementById('new-tag-inp');if(inp&&inp.value.trim())addTagFromInput(phone);}
+  else if(e.key==='Escape')hideTagSug();
+}
+function addTagFromInput(phone){
+  var inp=document.getElementById('new-tag-inp');
+  var tag=(inp?inp.value.trim():'');if(!tag)return;
+  if(!APP.masterTags.includes(tag))APP.masterTags.push(tag);
+  addTag(phone,tag);hideTagSug();
+}
+
+// ── DROPDOWNS FROM SHEETS ─────────────────────────────────────────
+async function loadDropdownsFromSheets(){
+  if(!CFG.dropdownsCSV)return;
+  try{
+    var r=await fetch(CFG.dropdownsCSV+'&t='+Date.now());if(!r.ok)return;
+    var csv=await r.text();var lines=csv.trim().split('\n');if(lines.length<2)return;
+    var tags=[];
+    lines.slice(1).forEach(function(line){
+      var cols=parseCSVLine(line);
+      var field=(cols[0]||'').trim().toLowerCase();
+      var label=(cols[1]||'').trim();
+      if(field==='customer tag'&&label)tags.push(label);
+    });
+    // Merge with any tags already in APP.masterTags
+    tags.forEach(t=>{if(!APP.masterTags.includes(t))APP.masterTags.push(t)});
+    logIt('Loaded '+tags.length+' master tags from Sheets');
+    renderTagManager();
+  }catch(e){console.log('Dropdowns load error:',e.message)}
+}
+
+// ── TAG MANAGER (Settings) ────────────────────────────────────────
+function renderTagManager(){
+  var el=document.getElementById('tag-manager-list');if(!el)return;
+  if(!APP.masterTags.length){el.innerHTML='<div style="font-size:12px;color:var(--mu)">No tags yet. Add one below or they load automatically from the Dropdowns tab.</div>';return}
+  el.innerHTML=APP.masterTags.map((t,i)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bd);font-size:13px"><span class="tag-chip" style="pointer-events:none">'+t+'</span><button onclick="deleteMasterTag('+i+')" style="background:transparent;border:none;cursor:pointer;color:var(--rd);font-size:13px;padding:2px 6px" title="Remove tag">×</button></div>').join('');
+}
+function addMasterTagFromSettings(){
+  var inp=document.getElementById('master-tag-inp');
+  var tag=(inp?inp.value.trim():'');if(!tag)return;
+  if(APP.masterTags.includes(tag)){toast('"'+tag+'" already exists');return}
+  APP.masterTags.push(tag);inp.value='';
+  renderTagManager();toast('"'+tag+'" added to master list');
+}
+function deleteMasterTag(idx){
+  var tag=APP.masterTags[idx];
+  if(!confirm('Remove "'+tag+'" from the master tag list?\n\nThis removes it as a suggestion — it won\'t remove the tag from customers who already have it.'))return;
+  APP.masterTags.splice(idx,1);renderTagManager();toast('"'+tag+'" removed from master list');
+}
+async function pushTagsToSheets(){
+  if(!CFG.zap8){toast('Set Zap 8 URL in Settings → Zapier section first');return}
+  var payload={event:'tags.push',tags:APP.masterTags.map((t,i)=>({field:'Customer Tag',label:t,index:i}))};
+  var ok=await fireZap(CFG.zap8,payload);
+  if(ok!==false)toast('Master tags pushed to Sheets ('+APP.masterTags.length+' tags)');
+  else toast('Could not reach Zapier — check Zap 8 URL');
+}
+
+// ── MENU FROM SHEETS (auto-load) ──────────────────────────────────
+async function loadMenuFromSheets(){
+  var url=CFG.sheetsCSV;if(!url)return;
+  try{
+    var r=await fetch(url+'&t='+Date.now());if(!r.ok)return;
+    var csv=await r.text();var lines=csv.trim().split('\n');if(lines.length<2)return;
+    var headers=parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+    var col={};headers.forEach((h,i)=>col[h]=i);
+    var loaded=0;
+    lines.slice(1).forEach(function(line){
+      if(!line.trim())return;
+      var cols=parseCSVLine(line);
+      var name=(cols[col['name']]||'').trim();var price=parseFloat(cols[col['price']]||'0');
+      if(!name)return;
+      var existing=APP.menu.find(m=>m.name===name);
+      if(existing){existing.price=price||existing.price;existing.cost=parseFloat(cols[col['cost']])||existing.cost;existing.type=cols[col['type']]||existing.type;existing.ing=cols[col['ingredients']]||existing.ing;existing.serv=parseInt(cols[col['servings']])||existing.serv;existing.avail=cols[col['available']]||existing.avail;existing.desc=cols[col['description']]||existing.desc;}
+      else{APP.menu.push({id:uid(),name,type:cols[col['type']]||'',price,cost:parseFloat(cols[col['cost']])||0,ing:cols[col['ingredients']]||'',serv:parseInt(cols[col['servings']])||1,avail:cols[col['available']]||'Always',desc:cols[col['description']]||''});loaded++;}
+    });
+    if(APP.menu.length)renderMenu();
+    if(loaded>0)logIt('Loaded '+loaded+' new menu items from Sheets');
+  }catch(e){console.log('Menu load error:',e.message)}
+}
+
 function initSample(){
   APP.menu=[
     {id:uid(),name:'Oxtail Platter (Half Pan)',desc:'Slow-braised, serves 4-6',type:'Platter',avail:'Always',price:175,cost:60,ing:'oxtail,butter beans,scotch bonnet,allspice,thyme,garlic,onion',serv:5,prep:4},
@@ -1392,7 +1670,7 @@ function initUI(){
     'bizname':CFG.bizName,'gh-url':CFG.ghURL,
     'adm-phone':CFG.adminPhone,'adm-email':CFG.adminEmail,
     'stripe-key':CFG.stripePublicKey,
-    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4,'zap6':CFG.zap6,
+    'zap1':CFG.zap1,'zap2':CFG.zap2,'zap3':CFG.zap3,'zap4':CFG.zap4,'zap6':CFG.zap6,'zap8':CFG.zap8,
     'emp-csv':CFG.employeesCSV
   };
   Object.entries(fields).forEach(([id,val])=>{var el=document.getElementById(id);if(el&&val)el.value=val});
@@ -1425,8 +1703,11 @@ function initUI(){
     }
   }
   checkAuth();
-  // Load current orders from master sheet on every page open
+  // Auto-load all data from Sheets on every page open
   loadOrdersFromSheets();
+  loadMenuFromSheets();
+  loadCustomersFromSheets();
+  loadDropdownsFromSheets();
 }
 function testAuth(){
   sessionStorage.removeItem('crk_employee');
