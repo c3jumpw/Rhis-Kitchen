@@ -425,8 +425,8 @@ textarea{resize:vertical;min-height:55px}
     <div class="int-title" style="color:var(--pu)"><i class="ti ti-checkbox" aria-hidden="true"></i> CLICKUP — DIRECT SYNC</div>
     <div class="help">Optional direct sync alongside Zapier. Get API Token from ClickUp → Settings → Apps. Get List ID from the URL of your Kitchen Orders list.</div>
     <div class="fg2">
-      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" value="pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8" oninput="CFG.cuToken=this.value"></div>
-      <div class="fg"><label>MASTER ORDER LIST ID</label><input id="cu-list" value="901326954708" oninput="CFG.cuListId=this.value"></div>
+      <div class="fg"><label>PERSONAL API TOKEN</label><input type="password" id="cu-token" value="pk_57036392_NOWNGQCANQ43LM9LZSEJT44Y3BQAKTK8" autocomplete="new-password" oninput="CFG.cuToken=this.value"></div>
+      <div class="fg"><label>MASTER ORDER LIST ID</label><input id="cu-list" value="901326954708" autocomplete="off" oninput="CFG.cuListId=this.value"></div>
     </div>
     <div class="row" style="margin-top:.375rem;gap:7px">
       <button class="btn bs2" style="border-color:var(--pu);color:var(--pu)" onclick="testCU()"><i class="ti ti-plug" aria-hidden="true"></i> Test Connection</button>
@@ -1461,6 +1461,7 @@ async function loadOrdersFromSheets(){
     logIt('Loaded '+loaded+' orders from Sheets'+(skipped?' ('+skipped+' already in session)':''));
     renderDash();
     if(typeof renderKanban==='function')renderKanban();
+    if(typeof updateBlastCount==='function')updateBlastCount();
     if(loaded>0)toast(loaded+' orders loaded from master record');
   }catch(e){console.log('Sheets orders load error:',e.message)}
 }
@@ -1534,7 +1535,7 @@ function renderCustomers(){
       var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
       var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
-      return'<div class="cust-list-row" onclick="custClick(event)" '+'"data-phone="'+c.phone+'"><div class="cust-av" style="width:32px;height:32px;font-size:12px;flex-shrink:0">'+ini+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+c.name+'</div><div style="font-size:11px;color:var(--mu)">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+tagHtml+'</div><div style="text-align:right;margin-left:8px;flex-shrink:0"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>';
+      return'<div class="cust-list-row" onclick="custClick(event)" data-phone="'+c.phone+'"><div class="cust-av" style="width:32px;height:32px;font-size:12px;flex-shrink:0">'+ini+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+c.name+'</div><div style="font-size:11px;color:var(--mu)">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+tagHtml+'</div><div style="text-align:right;margin-left:8px;flex-shrink:0"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>';
     }).join('');
   }else{
     el.className='cust-grid';el.style.padding='';
@@ -1542,7 +1543,7 @@ function renderCustomers(){
       var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
       var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
-      return'<div class="cust-card" onclick="custClick(event)" '+'"data-phone="'+c.phone+'"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
+      return'<div class="cust-card" onclick="custClick(event)" data-phone="'+c.phone+'"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
     }).join('');
   }
 }
@@ -1594,7 +1595,7 @@ function addTag(phone,tag){
   if(!c.name&&realName)c.name=realName;
   if(!c.tags)c.tags=[];
   if(!c.tags.includes(tag))c.tags.push(tag);
-  if(!APP.masterTags.includes(tag)){APP.masterTags.push(tag);renderTagManager();}
+  if(!APP.masterTags.includes(tag)){APP.masterTags.push(tag);renderTagManager();renderBlastTagFilter();updateBlastCount();}
   saveCustomerState();
   openCustomer(phone);
   renderCustomers();
@@ -1698,7 +1699,7 @@ async function loadTagsFromSheets(){
       var tag=(cols[col['tag name']]||cols[col['tag']]||cols[0]||'').trim();
       if(tag&&!APP.masterTags.includes(tag)){APP.masterTags.push(tag);loaded++;}
     });
-    if(loaded>0){logIt('Loaded '+loaded+' tags from Sheets');renderTagManager();}
+    if(loaded>0){logIt('Loaded '+loaded+' tags from Sheets');renderTagManager();renderBlastTagFilter();updateBlastCount();}
   }catch(e){console.log('Tags load error:',e.message)}
 }
 
@@ -1713,12 +1714,16 @@ function addMasterTagFromSettings(){
   var tag=(inp?inp.value.trim():'');if(!tag)return;
   if(APP.masterTags.includes(tag)){toast('"'+tag+'" already exists');return}
   APP.masterTags.push(tag);inp.value='';
-  saveCustomerState();renderTagManager();toast('"'+tag+'" added to master list');
+  saveCustomerState();renderTagManager();
+  renderBlastTagFilter();updateBlastCount();
+  toast('"'+tag+'" added to master list');
 }
 function deleteMasterTag(idx){
   var tag=APP.masterTags[idx];
   if(!confirm('Remove "'+tag+'" from the master tag list?\n\nThis removes it as a suggestion — it won\'t remove the tag from customers who already have it.'))return;
-  APP.masterTags.splice(idx,1);saveCustomerState();renderTagManager();toast('"'+tag+'" removed from master list');
+  APP.masterTags.splice(idx,1);saveCustomerState();renderTagManager();
+  renderBlastTagFilter();updateBlastCount();
+  toast('"'+tag+'" removed from master list');
 }
 async function pushTagsToSheets(){
   if(!CFG.zap8){toast('Zap 8 URL not configured — check Settings → Zapier section');return}
