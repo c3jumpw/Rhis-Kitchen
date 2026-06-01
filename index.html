@@ -143,6 +143,9 @@ textarea{resize:vertical;min-height:55px}
 .prof-stat-lbl{font-size:10px;color:var(--mu);margin-top:2px}
 .msg-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--bd2);text-decoration:none;color:var(--text);background:var(--bg2)}
 .msg-btn:hover{background:var(--card);border-color:var(--am)}
+.cust-list-row{display:flex;align-items:center;gap:10px;padding:.625rem .875rem;border-bottom:0.5px solid var(--bd);cursor:pointer;transition:background .1s}
+.cust-list-row:hover{background:var(--bg2)}
+.cust-list-row:last-child{border-bottom:none}
 .tag-sug-drop{position:absolute;top:100%;left:0;right:0;background:var(--card);border:0.5px solid var(--bd2);border-radius:8px;z-index:600;max-height:160px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-top:2px;display:none}
 .tag-sug-item{padding:.45rem .75rem;cursor:pointer;font-size:12px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:6px}
 .tag-sug-item:last-child{border-bottom:none}
@@ -335,6 +338,10 @@ textarea{resize:vertical;min-height:55px}
     <div style="font-size:15px;font-weight:500">Customers</div>
     <div class="row" style="gap:7px">
       <input id="cust-search" style="width:160px" placeholder="Search name, phone…" oninput="renderCustomers()">
+      <div style="display:flex;border:0.5px solid var(--bd2);border-radius:7px;overflow:hidden">
+        <button id="view-grid-btn" onclick="setCustView('grid')" style="padding:5px 9px;border:none;background:var(--am);cursor:pointer;color:#fff" title="Grid view"><i class="ti ti-layout-grid" aria-hidden="true" style="font-size:13px"></i></button>
+        <button id="view-list-btn" onclick="setCustView('list')" style="padding:5px 9px;border:none;background:transparent;cursor:pointer;color:var(--mu)" title="List view"><i class="ti ti-list" aria-hidden="true" style="font-size:13px"></i></button>
+      </div>
       <button class="btn bs2" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
     </div>
   </div>
@@ -343,7 +350,7 @@ textarea{resize:vertical;min-height:55px}
     <span class="tag-chip active" onclick="filterByTag('all',this)">All</span>
     <span id="tag-filter-chips"></span>
   </div>
-  <div class="cust-grid" id="clist"></div>
+  <div id="clist"></div>
 </div>
 
 <div class="sec" id="sec-grocery">
@@ -1422,14 +1429,26 @@ async function refreshFromSheets(){
 }
 
 // ── CUSTOMER SYSTEM ──────────────────────────────────────────────
-var _custFilter='all';var _viewCustId=null;
+var _custFilter='all';var _viewCustId=null;var _custView='grid';
+function setCustView(v){
+  _custView=v;
+  var gb=document.getElementById('view-grid-btn');var lb=document.getElementById('view-list-btn');
+  if(gb&&lb){
+    gb.style.background=v==='grid'?'var(--am)':'transparent';gb.style.color=v==='grid'?'#fff':'var(--mu)';
+    lb.style.background=v==='list'?'var(--am)':'transparent';lb.style.color=v==='list'?'#fff':'var(--mu)';
+  }
+  renderCustomers();
+}
 function customers(){
   var map={};
   APP.customers.forEach(c=>{map[c.phone||c.name]={...c}});
   APP.orders.forEach(o=>{
     var key=o.phone||o.name;
     if(!map[key])map[key]={id:uid(),name:o.name,phone:o.phone,email:o.email||'',tags:[],notes:'',created:o.created||''};
-    var c=map[key];if(!c.email&&o.email)c.email=o.email;
+    var c=map[key];
+    if(!c.name&&o.name)c.name=o.name; // restore name if blank
+    if(!c.phone&&o.phone)c.phone=o.phone;
+    if(!c.email&&o.email)c.email=o.email;
   });
   return Object.values(map);
 }
@@ -1449,13 +1468,24 @@ function renderCustomers(){
     return mQ&&mT;
   });
   var el=document.getElementById('clist');
-  if(!list.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">No customers yet — orders build your database automatically.</div>';return}
-  el.innerHTML=list.map(c=>{
-    var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
-    var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
-    return'<div class="cust-card" onclick="openCustomer(\''+c.phone+'\')"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
-  }).join('');
+  if(!list.length){el.className='';el.innerHTML='<div class="empty">No customers yet.</div>';return}
+  if(_custView==='list'){
+    el.className='card';el.style.padding='0';
+    el.innerHTML=list.map(c=>{
+      var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
+      var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
+      return'<div class="cust-list-row" onclick="openCustomer(this.dataset.phone)" '+'"data-phone="'+c.phone+'"><div class="cust-av" style="width:32px;height:32px;font-size:12px;flex-shrink:0">'+ini+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+c.name+'</div><div style="font-size:11px;color:var(--mu)">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+tagHtml+'</div><div style="text-align:right;margin-left:8px;flex-shrink:0"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>';
+    }).join('');
+  }else{
+    el.className='cust-grid';el.style.padding='';
+    el.innerHTML=list.map(c=>{
+      var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
+      var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
+      return'<div class="cust-card" onclick="openCustomer(this.dataset.phone)" '+'"data-phone="'+c.phone+'"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
+    }).join('');
+  }
 }
 function openCustomer(phone){
   var c=customers().find(x=>x.phone===phone||x.name===phone);if(!c)return;
@@ -1490,11 +1520,23 @@ function openCustomer(phone){
   document.getElementById('mo-customer').classList.add('open');
 }
 function closeCustomer(){document.getElementById('mo-customer').classList.remove('open');_viewCustId=null}
-function addTag(phone){
-  var inp=document.getElementById('new-tag-inp');var tag=(inp?inp.value.trim():'');if(!tag)return;
+function addTag(phone,tag){
+  // If tag not passed, read from input
+  if(!tag){var inp=document.getElementById('new-tag-inp');tag=(inp?inp.value.trim():'');}
+  if(!tag)return;
+  // Get the full customer data (including name from orders) before creating the entry
+  var merged=customers().find(x=>x.phone===phone||x.name===phone);
   var c=APP.customers.find(x=>x.phone===phone);
-  if(!c){c={id:uid(),name:'',phone:phone,email:'',tags:[],notes:'',created:''};APP.customers.push(c)}
-  if(!c.tags)c.tags=[];if(!c.tags.includes(tag))c.tags.push(tag);
+  if(!c){
+    c={id:uid(),name:merged?merged.name:'',phone:phone,email:merged?merged.email:'',tags:[],notes:'',created:''};
+    APP.customers.push(c);
+  }
+  // Sync name from orders if it got blanked
+  if(!c.name&&merged&&merged.name)c.name=merged.name;
+  if(!c.tags)c.tags=[];
+  if(!c.tags.includes(tag))c.tags.push(tag);
+  // Ensure new tags bubble up to master list
+  if(!APP.masterTags.includes(tag)){APP.masterTags.push(tag);renderTagManager();}
   openCustomer(phone);renderCustomers();
 }
 function removeTag(phone,idx){
