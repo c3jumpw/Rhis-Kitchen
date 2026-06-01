@@ -221,9 +221,22 @@ textarea{resize:vertical;min-height:55px}
       <div class="fg"><label>ORDER CUTOFF</label><input type="date" id="b-cut"></div>
     </div>
     <div class="fg"><label>MESSAGE</label><textarea id="b-msg" placeholder="Hey! We're taking pre-orders for our Mother's Day menu. Order by Wednesday the 7th — oxtail platters, jerk chicken, rice & peas. Reply or click the link to order!"></textarea></div>
-    <div class="row" style="margin-top:.5rem;gap:8px">
+    <div class="fg">
+      <label>SEND TO — SEGMENT / TAG <span style="font-weight:400;color:var(--mu)">(leave blank for all customers)</span></label>
+      <div id="blast-tag-select" style="display:flex;flex-wrap:wrap;gap:5px;padding:.5rem 0">
+        <span class="tag-chip active" onclick="blastTagToggle('',this)" id="btag-all">All customers</span>
+      </div>
+    </div>
+    <div class="fg" style="margin-top:.375rem">
+      <label>SEND VIA</label>
+      <div style="display:flex;gap:16px;margin-top:.375rem">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="blast-sms" checked style="width:auto"> SMS (Twilio)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="blast-email" checked style="width:auto"> Email (SendGrid)</label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:.625rem;gap:8px;align-items:center">
       <button class="btn bp" onclick="sendBlast()"><i class="ti ti-send" aria-hidden="true"></i> Send Blast (<span id="bcnt">0</span> customers)</button>
-      <span style="font-size:11px;color:var(--mu)">→ Sends SMS and email to each customer</span>
+      <span style="font-size:11px;color:var(--mu)" id="blast-preview-lbl"></span>
     </div>
   </div>
 </div>
@@ -670,6 +683,7 @@ function showTab(id,el){
   if(id==='orders')renderKanban();
   if(id==='menu')renderMenu();
   if(id==='customers'){renderCustomers();}
+  if(id==='dash'){renderBlastTagFilter();updateBlastCount();}
   if(id==='grocery')renderGrocery();
   if(id==='new')renderPicker();
 }
@@ -1020,15 +1034,44 @@ function renderGrocery(){
   el.innerHTML='<div style="margin-bottom:.875rem"><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.375rem">ORDERS TO FILL</div>'+Object.entries(agg).map(([n,v])=>'<div class="gr"><span>'+v.qty+'× '+n+'</span><span style="color:var(--mu)">~$'+v.cost.toFixed(0)+'</span></div>').join('')+'</div><div><div style="font-size:10px;font-weight:500;color:var(--mu);letter-spacing:.06em;margin-bottom:.375rem">INGREDIENTS NEEDED</div>'+Object.entries(ing).map(([i,q])=>'<div class="gr"><span style="text-transform:capitalize">'+i+'</span><span class="badge bam">×'+q+'</span></div>').join('')+'</div>';
 }
 
+var _blastTag=''; // '' = all customers
+function blastTagToggle(tag,el){
+  _blastTag=tag;
+  document.querySelectorAll('#blast-tag-select .tag-chip').forEach(c=>c.classList.remove('active'));
+  if(el)el.classList.add('active');
+  updateBlastCount();
+}
+function renderBlastTagFilter(){
+  var el=document.getElementById('blast-tag-select');if(!el)return;
+  var tags=allTags();
+  el.innerHTML='<span class="tag-chip'+(_blastTag===''?' active':'')+'" onclick="blastTagToggle(\'\',this)" id="btag-all">All customers</span>'
+    +tags.map(t=>'<span class="tag-chip'+(_blastTag===t?' active':'')+'" onclick="blastTagToggle(\''+t+'\',this)">'+t+'</span>').join('');
+}
+function updateBlastCount(){
+  var custs=customers();
+  if(_blastTag)custs=custs.filter(c=>(c.tags||[]).includes(_blastTag));
+  var cnt=document.getElementById('bcnt');if(cnt)cnt.textContent=custs.length;
+  var lbl=document.getElementById('blast-preview-lbl');
+  if(lbl){
+    var sms=document.getElementById('blast-sms');var email=document.getElementById('blast-email');
+    var via=[];if(sms&&sms.checked)via.push('SMS');if(email&&email.checked)via.push('email');
+    lbl.textContent='→ '+custs.length+' customer'+(custs.length!==1?'s':'')+(_blastTag?' tagged "'+_blastTag+'"':'')+' via '+(via.join(' + ')||'none selected');
+  }
+}
 async function sendBlast(){
   if(!CFG.zap3){toast('Configure Zap 3 (blast webhook) in Settings first');return}
   var occ=document.getElementById('b-occ').value;var msg=document.getElementById('b-msg').value;
   if(!msg){toast('Add a message first');return}
+  var smsOn=document.getElementById('blast-sms').checked;
+  var emailOn=document.getElementById('blast-email').checked;
+  if(!smsOn&&!emailOn){toast('Select at least one send method (SMS or Email)');return}
   var custs=customers();
-  var payload={event:'blast',occasion:occ,message:msg,cutoff_date:document.getElementById('b-cut').value,customer_count:custs.length,customers:custs.map(c=>({name:c.name,phone:c.phone,email:c.email})),admin_name:CFG.bizName};
+  if(_blastTag)custs=custs.filter(c=>(c.tags||[]).includes(_blastTag));
+  if(!custs.length){toast('No customers match the selected filter');return}
+  var payload={event:'blast',occasion:occ,message:msg,cutoff_date:document.getElementById('b-cut').value,customer_count:custs.length,tag_filter:_blastTag||'all',send_sms:smsOn,send_email:emailOn,customers:custs.map(c=>({name:c.name,phone:smsOn?c.phone:'',email:emailOn?c.email:''})),admin_name:CFG.bizName};
   var ok=await fireZap(CFG.zap3,payload);
-  logIt('Blast sent: '+(occ||'announcement')+' to '+custs.length+' customers');
-  renderDash();toast('Blast fired to Zapier → Twilio SMS + SendGrid email to '+custs.length+' customers');
+  logIt('Blast sent: '+(occ||'announcement')+' to '+custs.length+' customers'+(_blastTag?' ['+_blastTag+']':''));
+  renderDash();toast('Blast sent to '+custs.length+' customer'+(custs.length!==1?'s':'')+(_blastTag?' ('+_blastTag+')':''));
 }
 
 function renderStatusMap(){
@@ -1430,6 +1473,22 @@ async function refreshFromSheets(){
 
 // ── CUSTOMER SYSTEM ──────────────────────────────────────────────
 var _custFilter='all';var _viewCustId=null;var _custView='grid';
+
+// localStorage persistence for customer tags and master tags
+function saveCustomerState(){
+  try{localStorage.setItem('crk_customers',JSON.stringify(APP.customers));localStorage.setItem('crk_masterTags',JSON.stringify(APP.masterTags));}catch(e){}
+}
+function loadCustomerState(){
+  try{
+    var sc=localStorage.getItem('crk_customers');if(sc){var arr=JSON.parse(sc);arr.forEach(function(c){if(!APP.customers.find(function(x){return x.phone===c.phone}))APP.customers.push(c);});}
+    var st=localStorage.getItem('crk_masterTags');if(st){var tags=JSON.parse(st);tags.forEach(function(t){if(!APP.masterTags.includes(t))APP.masterTags.push(t)});}
+  }catch(e){}
+}
+// Event delegation for customer card clicks — works even when clicking child elements
+function custClick(e){
+  var card=e.target.closest('[data-phone]');
+  if(card&&card.dataset.phone)openCustomer(card.dataset.phone);
+}
 function setCustView(v){
   _custView=v;
   var gb=document.getElementById('view-grid-btn');var lb=document.getElementById('view-list-btn');
@@ -1475,7 +1534,7 @@ function renderCustomers(){
       var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
       var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
-      return'<div class="cust-list-row" onclick="openCustomer(this.dataset.phone)" '+'"data-phone="'+c.phone+'"><div class="cust-av" style="width:32px;height:32px;font-size:12px;flex-shrink:0">'+ini+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+c.name+'</div><div style="font-size:11px;color:var(--mu)">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+tagHtml+'</div><div style="text-align:right;margin-left:8px;flex-shrink:0"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>';
+      return'<div class="cust-list-row" onclick="custClick(event)" '+'"data-phone="'+c.phone+'"><div class="cust-av" style="width:32px;height:32px;font-size:12px;flex-shrink:0">'+ini+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+c.name+'</div><div style="font-size:11px;color:var(--mu)">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+tagHtml+'</div><div style="text-align:right;margin-left:8px;flex-shrink:0"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>';
     }).join('');
   }else{
     el.className='cust-grid';el.style.padding='';
@@ -1483,7 +1542,7 @@ function renderCustomers(){
       var cos=custOrders(c);var spent=cos.filter(o=>!o.voided).reduce((s,o)=>s+ot(o),0);
       var ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       var tagHtml=(c.tags||[]).map(t=>'<span class="tag-chip" style="font-size:9px;padding:1px 5px">'+t+'</span>').join('');
-      return'<div class="cust-card" onclick="openCustomer(this.dataset.phone)" '+'"data-phone="'+c.phone+'"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
+      return'<div class="cust-card" onclick="custClick(event)" '+'"data-phone="'+c.phone+'"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.5rem"><div class="cust-av">'+ini+'</div><div style="flex:1;min-width:0"><div class="cust-name">'+c.name+'</div><div class="cust-sub">'+c.phone+(c.email?' · '+c.email:'')+'</div></div><div style="text-align:right"><div style="font-size:12px;font-weight:500;color:var(--am)">$'+spent.toFixed(0)+'</div><div style="font-size:10px;color:var(--mu)">'+cos.length+' order'+(cos.length!==1?'s':'')+'</div></div></div>'+(tagHtml?'<div>'+tagHtml+'</div>':'')+'</div>';
     }).join('');
   }
 }
@@ -1521,27 +1580,28 @@ function openCustomer(phone){
 }
 function closeCustomer(){document.getElementById('mo-customer').classList.remove('open');_viewCustId=null}
 function addTag(phone,tag){
-  // If tag not passed, read from input
   if(!tag){var inp=document.getElementById('new-tag-inp');tag=(inp?inp.value.trim():'');}
   if(!tag)return;
-  // Get the full customer data (including name from orders) before creating the entry
-  var merged=customers().find(x=>x.phone===phone||x.name===phone);
-  var c=APP.customers.find(x=>x.phone===phone);
+  // Get the real name from orders (most reliable source)
+  var orderMatch=APP.orders.find(function(o){return o.phone===phone});
+  var realName=orderMatch?orderMatch.name:'';
+  var c=APP.customers.find(function(x){return x.phone===phone});
   if(!c){
-    c={id:uid(),name:merged?merged.name:'',phone:phone,email:merged?merged.email:'',tags:[],notes:'',created:''};
+    c={id:uid(),name:realName,phone:phone,email:orderMatch?orderMatch.email||'':'',tags:[],notes:'',created:''};
     APP.customers.push(c);
   }
-  // Sync name from orders if it got blanked
-  if(!c.name&&merged&&merged.name)c.name=merged.name;
+  // Always restore name from orders if blank
+  if(!c.name&&realName)c.name=realName;
   if(!c.tags)c.tags=[];
   if(!c.tags.includes(tag))c.tags.push(tag);
-  // Ensure new tags bubble up to master list
   if(!APP.masterTags.includes(tag)){APP.masterTags.push(tag);renderTagManager();}
-  openCustomer(phone);renderCustomers();
+  saveCustomerState();
+  openCustomer(phone);
+  renderCustomers();
 }
 function removeTag(phone,idx){
-  var c=APP.customers.find(x=>x.phone===phone);if(!c||!c.tags)return;
-  c.tags.splice(idx,1);openCustomer(phone);renderCustomers();
+  var c=APP.customers.find(function(x){return x.phone===phone});if(!c||!c.tags)return;
+  c.tags.splice(idx,1);saveCustomerState();openCustomer(phone);renderCustomers();
 }
 function deleteCustomer(){
   if(!_viewCustId)return;
@@ -1653,12 +1713,12 @@ function addMasterTagFromSettings(){
   var tag=(inp?inp.value.trim():'');if(!tag)return;
   if(APP.masterTags.includes(tag)){toast('"'+tag+'" already exists');return}
   APP.masterTags.push(tag);inp.value='';
-  renderTagManager();toast('"'+tag+'" added to master list');
+  saveCustomerState();renderTagManager();toast('"'+tag+'" added to master list');
 }
 function deleteMasterTag(idx){
   var tag=APP.masterTags[idx];
   if(!confirm('Remove "'+tag+'" from the master tag list?\n\nThis removes it as a suggestion — it won\'t remove the tag from customers who already have it.'))return;
-  APP.masterTags.splice(idx,1);renderTagManager();toast('"'+tag+'" removed from master list');
+  APP.masterTags.splice(idx,1);saveCustomerState();renderTagManager();toast('"'+tag+'" removed from master list');
 }
 async function pushTagsToSheets(){
   if(!CFG.zap8){toast('Zap 8 URL not configured — check Settings → Zapier section');return}
@@ -1723,6 +1783,7 @@ var bc=document.getElementById('b-cut');if(!bc.value)bc.value=new Date(Date.now(
 
 // Auto-populate all pre-baked settings into input fields on load
 function initUI(){
+  loadCustomerState(); // Restore tags and customer data from previous session
   var fields={
     'cu-token':CFG.cuToken,'cu-list':CFG.cuListId,
     'bizname':CFG.bizName,'gh-url':CFG.ghURL,
